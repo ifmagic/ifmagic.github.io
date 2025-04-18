@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | matplotlib.pyplot.quiver使用指南</title>
+<meta
+  property="og:title"
+  content="碎碎念 | matplotlib.pyplot.quiver使用指南"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/matplotlib-quiver/" />
+<meta property="og:description" content="matplotlib.pyplot.quiver使用指南，包括基本的函数参数介绍与示例程序。这是我在CSDN写过所有的博客里面至今为止浏览量和收藏最多的文章，所以在迁移博客的时候也一并迁移过来了。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="matplotlib.pyplot.quiver使用指南" />
+<meta name="twitter:description" content="matplotlib.pyplot.quiver使用指南，包括基本的函数参数介绍与示例程序。这是我在CSDN写过所有的博客里面至今为止浏览量和收藏最多的文章，所以在迁移博客的时候也一并迁移过来了。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">18</span>
+        <span class="rest">Dec 20</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">matplotlib.pyplot.quiver使用指南 </h1>
+    </div>
+  </div>
+    
+  <article><h1 id="1-yin-zi">1. 引子</h1>
+<pre data-lang="python" style="background-color:#282c34;color:#abb2bf;" class="language-python "><code class="language-python" data-lang="python"><span>X = np.</span><span style="color:#e06c75;">arange</span><span>(-</span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#d19a66;">1</span><span>)
+</span><span>Y = np.</span><span style="color:#e06c75;">arange</span><span>(-</span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#d19a66;">1</span><span>)
+</span><span style="font-style:italic;color:#5c6370;"># meshgrid 生成网格，此处生成两个 shape = (20,20) 的 ndarray, 详见参考资料2,3
+</span><span>U, V = np.</span><span style="color:#e06c75;">meshgrid</span><span>(X, Y)
+</span><span>C = np.</span><span style="color:#e06c75;">sin</span><span>(U)
+</span><span>fig, ax = plt.</span><span style="color:#e06c75;">subplots</span><span>()
+</span><span style="font-style:italic;color:#5c6370;"># 绘制箭头
+</span><span>q = ax.</span><span style="color:#e06c75;">quiver</span><span>(X, Y, U, V, C)
+</span><span style="font-style:italic;color:#5c6370;"># 该函数绘制一个箭头标签在 (X, Y) 处， 长度为U, 详见参考资料4
+</span><span>ax.</span><span style="color:#e06c75;">quiverkey</span><span>(q, </span><span style="color:#e06c75;">X</span><span>=</span><span style="color:#d19a66;">0.3</span><span>, </span><span style="color:#e06c75;">Y</span><span>=</span><span style="color:#d19a66;">1.1</span><span>, </span><span style="color:#e06c75;">U</span><span>=</span><span style="color:#d19a66;">10</span><span>,
+</span><span>             </span><span style="color:#e06c75;">label</span><span>=</span><span style="color:#98c379;">&#39;Quiver key, length = 10&#39;</span><span>, </span><span style="color:#e06c75;">labelpos</span><span>=</span><span style="color:#98c379;">&#39;E&#39;</span><span>)
+</span><span>plt.</span><span style="color:#e06c75;">show</span><span>()
+</span></code></pre>
+<p>效果如下图所示：</p>
+<div align="center">
+    <img src="https://i.loli.net/2020/12/17/6kSNPoBr4wDbITA.png" alt="pyplot" width="600" height="400">
+</div>
+<h1 id="2-matplotlib-pyplot-quiver">2. matplotlib.pyplot.quiver</h1>
+<p>根据 <a href="https://matplotlib.org/3.3.3/api/_as_gen/matplotlib.pyplot.quiver.html">matplotlib.pyplot.quiver.html</a>显示，该函数原型</p>
+<pre data-lang="py3" style="background-color:#282c34;color:#abb2bf;" class="language-py3 "><code class="language-py3" data-lang="py3"><span>matplotlib.pyplot.</span><span style="color:#e06c75;">quiver</span><span>(*args, </span><span style="color:#e06c75;">data</span><span>=</span><span style="color:#d19a66;">None</span><span>, **kw)
+</span></code></pre>
+<p>签名如下：</p>
+<font color="orange" size=4>
+quiver([X, Y], U, V, [C], **kw)
+</font>
+<p>其中 X, Y 定义了箭头的位置, U, V 定义了箭头的方向, C 作为可选参数用来设置颜色。<br />
+下面是几个常见的参数：</p>
+<ul>
+<li>
+<p><strong>units：</strong> 此参数指示了除箭头长度外，其他尺寸的变化趋势，以该单位的倍数测量。可取值为 <code>{'width', 'height', 'dots', 'inches', 'x', 'y' 'xy'}</code>, 默认是 <code>'width'</code>。需要配合 <code>scale</code> 参数使用。</p>
+</li>
+<li>
+<p><strong>scale:</strong> <code>float, optional</code>。此参数是每个箭头长度单位的数据单位数，通常该值越小，意味着箭头越长，默认为 <code>None</code> ,此时系统会采用自动缩放算法。箭头长度单位由 <code>scale_units</code> 参数指定。</p>
+</li>
+<li>
+<p><strong>scale_units:</strong> 此参数是可选参数，其中包含以下值：<code>{'width', 'height', 'dots', 'inches', 'x', 'y', 'xy'}</code>, 一般当 <code>scale=None</code> 时该选项指示长度单位，默认为 <code>None</code>。</p>
+</li>
+<li>
+<p><strong>angles:</strong> 此参数指定了确定箭头角度的方法，可以取 <code>{'uv', 'xy'}</code> 或者 <code>array-like</code>, 默认是 <code>'uv' </code>。 设计原因是 因为图的宽和高可能不同，所以 <code>x</code> 方向的单位长度和 <code>y</code> 方向的单位长度可能不同，这时我们需要做出选择，一是不管长度对不对，角度一定要对，此时 <code>angles='uv'</code>，二是不管角度了，只要长度对就可以了，此时 <code>angles='xy'</code>。当该值为一个 <code>array</code> 的时候，该数组应该是以度数为单位的数组，表示了每一个箭头的方向，如下所示：</p>
+</li>
+</ul>
+<pre data-lang="python" style="background-color:#282c34;color:#abb2bf;" class="language-python "><code class="language-python" data-lang="python"><span>fig, ax = plt.</span><span style="color:#e06c75;">subplots</span><span>()
+</span><span style="font-style:italic;color:#5c6370;"># 以水平轴按照 angles 参数逆时针旋转得到箭头方向， units=&#39;xy&#39; 指出了箭头长度计算方法
+</span><span>ax.</span><span style="color:#e06c75;">quiver</span><span>((</span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#d19a66;">0</span><span>), (</span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#d19a66;">0</span><span>), (</span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#d19a66;">0</span><span>), (</span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#d19a66;">3</span><span>), </span><span style="color:#e06c75;">angles</span><span>=[</span><span style="color:#d19a66;">60</span><span>, </span><span style="color:#d19a66;">300</span><span>], </span><span style="color:#e06c75;">units</span><span>=</span><span style="color:#98c379;">&#39;xy&#39;</span><span>, </span><span style="color:#e06c75;">scale</span><span>=</span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#e06c75;">color</span><span>=</span><span style="color:#98c379;">&#39;r&#39;</span><span>)
+</span><span>plt.</span><span style="color:#e06c75;">axis</span><span>(</span><span style="color:#98c379;">&#39;equal&#39;</span><span>)
+</span><span>plt.</span><span style="color:#e06c75;">xticks</span><span>(</span><span style="color:#56b6c2;">range</span><span>(-</span><span style="color:#d19a66;">5</span><span>, </span><span style="color:#d19a66;">6</span><span>))
+</span><span>plt.</span><span style="color:#e06c75;">yticks</span><span>(</span><span style="color:#56b6c2;">range</span><span>(-</span><span style="color:#d19a66;">5</span><span>, </span><span style="color:#d19a66;">6</span><span>))
+</span><span>plt.</span><span style="color:#e06c75;">grid</span><span>()
+</span><span>plt.</span><span style="color:#e06c75;">show</span><span>()
+</span></code></pre>
+<div align="center">
+    <img src="https://i.loli.net/2020/12/17/MpESeTBI6jnZUwH.png" alt="pyplot" width="600" height="400">
+</div>
+<ul>
+<li><strong>pivot:</strong> <code>{'tail', 'mid', 'middle', 'tip'}</code>, 默认为 <code>'tail'</code>。该参数指定了箭头的基点(旋转点)。</li>
+<li>width:此参数是轴宽，以箭头为单位。</li>
+<li>headwidth:该参数是杆头宽度乘以杆身宽度的倍数。</li>
+<li>headlength:此参数是长度宽度乘以轴宽度。</li>
+<li>headwidth:该参数是杆头宽度乘以杆身宽度的倍数。</li>
+<li>headaxislength:此参数是轴交点处的头部长度。</li>
+<li>minshaft:此参数是箭头缩放到的长度，以头部长度为单位。</li>
+<li>minlength:此参数是最小长度，是轴宽度的倍数。</li>
+</ul>
+<h1 id="3-quiver-shi-li">3. quiver 示例</h1>
+<ul>
+<li>以箭头中间为基点，并在该点画出一个红色的点：</li>
+</ul>
+<pre data-lang="python" style="background-color:#282c34;color:#abb2bf;" class="language-python "><code class="language-python" data-lang="python"><span>X, Y = np.</span><span style="color:#e06c75;">meshgrid</span><span>(np.</span><span style="color:#e06c75;">arange</span><span>(</span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#d19a66;">2 </span><span>* np.pi, </span><span style="color:#d19a66;">.2</span><span>), np.</span><span style="color:#e06c75;">arange</span><span>(</span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#d19a66;">2 </span><span>* np.pi, </span><span style="color:#d19a66;">.2</span><span>))
+</span><span>U, V = np.</span><span style="color:#e06c75;">cos</span><span>(X), np.</span><span style="color:#e06c75;">sin</span><span>(Y)
+</span><span>fig, ax = plt.</span><span style="color:#e06c75;">subplots</span><span>()
+</span><span>
+</span><span>ax.</span><span style="color:#e06c75;">set_title</span><span>(</span><span style="color:#98c379;">&quot;pivot=&#39;mid&#39;; every third arrow; units=&#39;inches&#39;&quot;</span><span>)
+</span><span>Q = ax.</span><span style="color:#e06c75;">quiver</span><span>(X[::</span><span style="color:#d19a66;">3</span><span>, ::</span><span style="color:#d19a66;">3</span><span>], Y[::</span><span style="color:#d19a66;">3</span><span>, ::</span><span style="color:#d19a66;">3</span><span>], U[::</span><span style="color:#d19a66;">3</span><span>, ::</span><span style="color:#d19a66;">3</span><span>], V[::</span><span style="color:#d19a66;">3</span><span>, ::</span><span style="color:#d19a66;">3</span><span>], </span><span style="color:#e06c75;">units</span><span>=</span><span style="color:#98c379;">&#39;inches&#39;</span><span>, </span><span style="color:#e06c75;">pivot</span><span>=</span><span style="color:#98c379;">&#39;mid&#39;</span><span>, </span><span style="color:#e06c75;">color</span><span>=</span><span style="color:#98c379;">&#39;g&#39;</span><span>)
+</span><span>qk = ax.</span><span style="color:#e06c75;">quiverkey</span><span>(Q, </span><span style="color:#d19a66;">0.9</span><span>, </span><span style="color:#d19a66;">0.9</span><span>, </span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#c678dd;">r</span><span style="color:#98c379;">&#39;</span><span style="color:#c678dd;">$</span><span style="color:#98c379;">1 </span><span style="color:#56b6c2;">\f</span><span style="color:#98c379;">rac{m}{s}</span><span style="color:#c678dd;">$</span><span style="color:#98c379;">&#39;</span><span>, </span><span style="color:#e06c75;">labelpos</span><span>=</span><span style="color:#98c379;">&#39;E&#39;</span><span>,
+</span><span>                   </span><span style="color:#e06c75;">coordinates</span><span>=</span><span style="color:#98c379;">&#39;figure&#39;</span><span>)
+</span><span>ax.</span><span style="color:#e06c75;">scatter</span><span>(X[::</span><span style="color:#d19a66;">3</span><span>, ::</span><span style="color:#d19a66;">3</span><span>], Y[::</span><span style="color:#d19a66;">3</span><span>, ::</span><span style="color:#d19a66;">3</span><span>], </span><span style="color:#e06c75;">color</span><span>=</span><span style="color:#98c379;">&#39;r&#39;</span><span>, </span><span style="color:#e06c75;">s</span><span>=</span><span style="color:#d19a66;">5</span><span>)
+</span><span>plt.</span><span style="color:#e06c75;">show</span><span>()
+</span></code></pre>
+<div align="center">
+    <img src="https://i.loli.net/2020/12/18/MFhOvrsIqY4jlgx.png" alt="pyplot" width="600" height="400">
+</div>
+<ul>
+<li>头部， 并为每个箭头设置颜色和大小</li>
+</ul>
+<pre data-lang="python" style="background-color:#282c34;color:#abb2bf;" class="language-python "><code class="language-python" data-lang="python"><span>X, Y = np.</span><span style="color:#e06c75;">meshgrid</span><span>(np.</span><span style="color:#e06c75;">arange</span><span>(</span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#d19a66;">2 </span><span>* np.pi, </span><span style="color:#d19a66;">.2</span><span>), np.</span><span style="color:#e06c75;">arange</span><span>(</span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#d19a66;">2 </span><span>* np.pi, </span><span style="color:#d19a66;">.2</span><span>))
+</span><span>U, V = np.</span><span style="color:#e06c75;">cos</span><span>(X), np.</span><span style="color:#e06c75;">sin</span><span>(Y)
+</span><span>fig, ax = plt.</span><span style="color:#e06c75;">subplots</span><span>()
+</span><span style="font-style:italic;color:#5c6370;"># M 为颜色矩阵
+</span><span>M = np.</span><span style="color:#e06c75;">hypot</span><span>(U, V)
+</span><span>ax.</span><span style="color:#e06c75;">set_title</span><span>(</span><span style="color:#98c379;">&quot;pivot=&#39;tip&#39;; scales with x view&quot;</span><span>)
+</span><span>Q = ax.</span><span style="color:#e06c75;">quiver</span><span>(X, Y, U, V, M, </span><span style="color:#e06c75;">units</span><span>=</span><span style="color:#98c379;">&#39;xy&#39;</span><span>, </span><span style="color:#e06c75;">scale</span><span>=</span><span style="color:#d19a66;">1 </span><span>/ </span><span style="color:#d19a66;">0.15</span><span>, </span><span style="color:#e06c75;">pivot</span><span>=</span><span style="color:#98c379;">&#39;tip&#39;</span><span>)
+</span><span>qk = ax.</span><span style="color:#e06c75;">quiverkey</span><span>(Q, </span><span style="color:#d19a66;">0.9</span><span>, </span><span style="color:#d19a66;">0.9</span><span>, </span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#c678dd;">r</span><span style="color:#98c379;">&#39;</span><span style="color:#c678dd;">$</span><span style="color:#98c379;">1 </span><span style="color:#56b6c2;">\f</span><span style="color:#98c379;">rac{m}{s}</span><span style="color:#c678dd;">$</span><span style="color:#98c379;">&#39;</span><span>, </span><span style="color:#e06c75;">labelpos</span><span>=</span><span style="color:#98c379;">&#39;E&#39;</span><span>,
+</span><span>                  </span><span style="color:#e06c75;">coordinates</span><span>=</span><span style="color:#98c379;">&#39;figure&#39;</span><span>)
+</span><span>ax.</span><span style="color:#e06c75;">scatter</span><span>(X, Y, </span><span style="color:#e06c75;">color</span><span>=</span><span style="color:#98c379;">&#39;r&#39;</span><span>, </span><span style="color:#e06c75;">s</span><span>=</span><span style="color:#d19a66;">1</span><span>)
+</span><span>plt.</span><span style="color:#e06c75;">show</span><span>()
+</span></code></pre>
+<div align="center">
+    <img src="https://i.loli.net/2020/12/18/GLcWSgTJ9ydfCFu.png" alt="pyplot" width="600" height="400">
+</div>
+<h1 id="4-can-kao-zi-liao">4. 参考资料</h1>
+<p><a href="https://matplotlib.org/3.3.3/gallery/images_contours_and_fields/quiver_simple_demo.html">1. Quiver Simple Demo</a></p>
+<p><a href="https://numpy.org/doc/stable/reference/generated/numpy.meshgrid.html#numpy.meshgrid">2. numpy.meshgrid</a></p>
+<p><a href="https://blog.csdn.net/qq_38701868/article/details/99694048?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-3.control&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-3.control">3. Numpy 中的 meshgrid()函数</a></p>
+<p><a href="https://matplotlib.org/3.3.3/api/_as_gen/matplotlib.axes.Axes.quiverkey.html#matplotlib.axes.Axes.quiverkey">4. matplotlib.axes.Axes.quiverkey</a></p>
+<p><a href="https://www.cnblogs.com/gujianmu/p/12853643.html">5. matplotlib quiver:清奇的脑回路</a></p>
+<p><a href="https://matplotlib.org/3.3.3/gallery/images_contours_and_fields/quiver_demo.html#sphx-glr-gallery-images-contours-and-fields-quiver-demo-py">6. Advanced quiver and quiverkey functions</a></p>
+</article>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/python3'>Python3</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/matplotlib'>matplotlib</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2025
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    </body>
+</html>

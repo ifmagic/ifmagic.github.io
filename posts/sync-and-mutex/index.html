@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | Send &amp; Mutex: Misconceptions about Send</title>
+<meta
+  property="og:title"
+  content="碎碎念 | Send &amp; Mutex: Misconceptions about Send"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/sync-and-mutex/" />
+<meta property="og:description" content="【翻译】在 Rust 中，想要实现一个类型的值在不同的线程或者异步任务中正常使用（确切的来说应该是无data race的读写），该类型必须实现两个标记 Trait: Send+Sync。而作者这篇文章旨在通过一系列的例子，来指明在某种程度上我们对 Send Trait 存在的误解，即 Send 应该指的：是不同的线程在不同的时间安全的使用；而不是我们下意识认为的：将一个类型的值从一个线程发送到另外一个线程。借此回答了作者在 Reddit 上看到的一个有趣的问题：为什么 Mutex&lt;T&gt; 想要保证线程安全就必须确保类型 T 实现了 Send Trait。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Send &amp; Mutex: Misconceptions about Send" />
+<meta name="twitter:description" content="【翻译】在 Rust 中，想要实现一个类型的值在不同的线程或者异步任务中正常使用（确切的来说应该是无data race的读写），该类型必须实现两个标记 Trait: Send+Sync。而作者这篇文章旨在通过一系列的例子，来指明在某种程度上我们对 Send Trait 存在的误解，即 Send 应该指的：是不同的线程在不同的时间安全的使用；而不是我们下意识认为的：将一个类型的值从一个线程发送到另外一个线程。借此回答了作者在 Reddit 上看到的一个有趣的问题：为什么 Mutex&lt;T&gt; 想要保证线程安全就必须确保类型 T 实现了 Send Trait。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">04</span>
+        <span class="rest">Jun 24</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">Send &amp; Mutex: Misconceptions about Send </h1>
+    </div>
+  </div>
+    
+  <article><blockquote>
+<p>原文：<a href="https://cryptical.xyz/rust/send-mutex">Send &amp; Mutex - Misconceptions about Send</a></p>
+<p>Author: <a href="https://github.com/ozgunozerk">Özgün Özerk</a></p>
+</blockquote>
+<h2 id="1-bei-jing-jie-shao">1. 背景介绍</h2>
+<p> 在 Rust 中，想要实现一个类型的值在不同的线程或者异步任务中正常使用（确切的来说应该是无 data race 的读写），该类型必须实现两个标记
+Trait: Send+Sync。而作者这篇文章旨在通过一系列的例子，来指明在某种程度上我们对 Send Trait 存在的误解，即 Send
+应该指的：是不同的线程在不同的时间安全的使用；而不是我们下意识认为的：将一个类型的值从一个线程发送到另外一个线程。借此回答了作者在
+Reddit 上看到的一个有趣的问题：<font color=red>为什么 Mutex&lt;T&gt; 想要保证线程安全就必须确保类型 T 实现了 Send Trait？</font></p>
+<p>首先可以通过两个简单的例子，来窥探一下，实现了 Send+Sync 的类型和未实现的类型，在 Rust 异步任务中的编译情况：</p>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <img src="no_sync_demo.png" alt="No Sync Demo" style="max-width: 52%; height: auto;">
+    <img src="sync_demo.png" alt="Sync Demo" style="max-width: 48%; height: auto;">
+</div>
+<p>如上图所示，no_sync_demo 展示了在异步任务中使用了未实现 Sync 的数据结构 Rc，从而导致程序无法通过编译。而在 sync_demo
+中我们切换为了线程安全的 Arc，从而使得代码可以正常运行。究其原因是因为 Arc 实现了 Send + Sync 两个
+Trait，如下所示（11、13 行）：</p>
+<pre data-linenos data-lang="rust" style="background-color:#282c34;color:#abb2bf;" class="language-rust "><code class="language-rust" data-lang="rust"><table><tbody><tr><td>1</td><td><span style="color:#c678dd;">pub struct </span><span>Arc&lt;
+</span></td></tr><tr><td>2</td><td><span>    T: </span><span style="background-color:#f2777a;color:#272b33;">?</span><span>Sized,
+</span></td></tr><tr><td>3</td><td><span>    #[unstable(feature = &quot;allocator_api&quot;, issue = &quot;32838&quot;)] A: Allocator = Global,
+</span></td></tr><tr><td>4</td><td><span>&gt; {
+</span></td></tr><tr><td>5</td><td><span>    ptr: NonNull&lt;ArcInner&lt;T&gt;&gt;,
+</span></td></tr><tr><td>6</td><td><span>    phantom: PhantomData&lt;ArcInner&lt;T&gt;&gt;,
+</span></td></tr><tr><td>7</td><td><span>    alloc: A,
+</span></td></tr><tr><td>8</td><td><span>}
+</span></td></tr><tr><td>9</td><td><span>
+</span></td></tr><tr><td>10</td><td><span>#[</span><span style="color:#e06c75;">stable</span><span>(feature = </span><span style="color:#98c379;">&quot;rust1&quot;</span><span>, since = </span><span style="color:#98c379;">&quot;1.0.0&quot;</span><span>)]
+</span></td></tr><tr><td>11</td><td><span style="color:#c678dd;">unsafe impl</span><span>&lt;T: </span><span style="background-color:#f2777a;color:#272b33;">?</span><span>Sized + Sync + Send, A: Allocator + Send&gt; Send for Arc&lt;T, A&gt; {}
+</span></td></tr><tr><td>12</td><td><span>
+</span></td></tr><tr><td>13</td><td><span>#[</span><span style="color:#e06c75;">stable</span><span>(feature = </span><span style="color:#98c379;">&quot;rust1&quot;</span><span>, since = </span><span style="color:#98c379;">&quot;1.0.0&quot;</span><span>)]
+</span></td></tr><tr><td>14</td><td><span style="color:#c678dd;">unsafe impl</span><span>&lt;T: </span><span style="background-color:#f2777a;color:#272b33;">?</span><span>Sized + Sync + Send, A: Allocator + Sync&gt; Sync for Arc&lt;T, A&gt; {}
+</span></td></tr></tbody></table></code></pre>
+<h2 id="2-send-sync-intro">2. Send &amp; Sync (intro)</h2>
+<p>这是由编译器自动实现的两个标记 Trait，他们用来指定一个类型可以在并发编程模型下安全使用而不会产生 Data
+Race。我们很容易找到两者的官方文档定义：<a href="https://doc.rust-lang.org/nomicon/send-and-sync.html#send-and-sync">Send and Sync</a>
+，但仍旧有些晦涩难懂。相对应的，<a href="https://stackoverflow.com/users/2644842/jonathan-giddy">Jonathan Giddy</a>
+在 stackoverflow 上的<a href="https://stackoverflow.com/a/60109068/14075443">这个回答</a>要更加的直观：</p>
+<ul>
+<li>
+<p>Sync allows an object to be used by two threads A and B at the same time.</p>
+</li>
+<li>
+<p>Send allows an object to be used by two threads A and B at different times.</p>
+</li>
+</ul>
+<p>同时老哥还详细介绍了一下 Rc 和 Arc 的区别，以及为什么 Rc 不是线程安全的。</p>
+<blockquote>
+<p>大多数类型都是实现了 Send 的，但 Rc 是一个例外，因为 Rc 允许一个值有多个所有者，然而其底层的引用计数又是非原子操作的，在多线程环境下同步操作引用计数可能会导致不符合预期的结果，所以 Rc 不是线程安全的。</p>
+<p>Arc 是使用了原子类型实现了引用计数的 Rc，所以是线程安全的。此外如果 Arc 指向的数据是 Sync 的，那么整个对象也应该是 Sync 的。而如果某个对象不是 Sync 的，我们可以尝试使用 Mutex 包裹起来，从而使其变得线程安全。因此在异步 Rust 编程中，我们会看到大量的 Arc&lt;Mutex&lt;T&gt;&gt;类型的变量。</p>
+</blockquote>
+<p>作者之所以在这篇文章中特意引入了这个非官方的定义，而不是官方的：<font color='red'>A type is Send if it is safe to send it to another thread，</font>是因为他认为这个解释会带来一些误解。而事实也确实如此，我此前一直认为 Send 意味着将一个类型的值从一个线程发送到另外一个线程，但实际上这并不是 Send 的真正含义。</p>
+<h3 id="2-1-sync-intro">2.1 Sync Intro</h3>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+Say, you have a string.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+And you want to share this string with multiple threads.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+If more than one thread tries to modify the same string at the same time, you will get a data race.</li>
+</ul>
+<p>根据上面这个例子可以看到，Sync 的工作机制和 Rust 的 borrow checker 有些类似，它确保了一个类型可以被多个线程同时访问，但是不允许多个线程同时修改（在无任何同步机制的情况下）。显然对于 String 我们可以在多个线程之间共享读而不会出现问题，因为 borrow checker 不会允许在存在不可变引用的情况下去获取到可变引用。所以 String 是 Sync 的，并且 Rust 中几乎所有的类型都是 Sync 的。</p>
+<p>那什么类型是非 Sync 的呢？官方文档的<a href="https://doc.rust-lang.org/std/marker/trait.Sync.html#:~:text=Types%20that%20are%20not%20Sync%20are">回答</a>如下：</p>
+<blockquote>
+<p>Types that are not Sync are those that have “interior mutability” in a non-thread-safe form, such as Cell and RefCell. These types allow for mutation of their contents even through an immutable, shared reference. For example the set method on Cell<T> takes &amp;self, so it requires only a shared reference &amp;Cell<T>. The method performs no synchronization, thus Cell cannot be Sync.</p>
+</blockquote>
+<p>可以看到拥有内部可变性的类型，比如 Cell 和 RefCell，由于允许通过不可变引用来修改其内容，可以绕过 borrow checker 的所有权检查规则，让多个线程同时修改一个值，但 Cell 和 RefCell 本身又没有同步机制来避免 Data Race，所以它们是非 Sync 的。</p>
+<h3 id="2-2-send-intro">2.2 Send Intro</h3>
+<p>如 Sync，Rust 中几乎所有的类型都是 Send 的，但是有一些例外，比如 Rc。</p>
+<p><strong>Single-threaded example:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+We have an Rc<String> variable.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+We clone it multiple times.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+At this point, we cannot get a mutable reference to our String via Rc<String> clones, because there are multiple Rc<String> pointers present.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+If we drop some Rc<String> clones, so that there is only one reference remaining, then we can get a mutable reference to our String via Rc<String>.</li>
+</ul>
+<p><strong>Multi-threaded example:</strong></p>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+We have an Rc<String> variable.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+We clone it multiple times.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+We send these clones to different threads (actually we can’t do that, because Rust compiler forbids us to, but let’s say we can for the sake of this example).</li>
+<li><input disabled="" type="checkbox" checked=""/>
+At this point, we cannot get a mutable reference to our String, because there are multiple Rc<String> pointers present. So, let’s drop some of them.</li>
+<li><input disabled="" type="checkbox" checked=""/>
+If two threads tries to drop their Rc<String> clones at the same time, a data race on the reference counting mechanism will occur. And we will never be able to get a mutable reference to our String.</li>
+</ul>
+<h3 id="2-3-sync-and-send-relationship">2.3 Sync and Send relationship</h3>
+<p>The Rustonomicon <a href="https://doc.rust-lang.org/nomicon/send-and-sync.html#send-and-sync">notices that</a>: <font color="green">A type is Sync if it is safe to share between threads (T is Sync if and only if &amp;T is Send).</font></p>
+<p>实话说，看到这句话我的第一反应是（T is Sync if and only if &amp;T is Send）是什么玩意，是人话吗？但看到作者的解释，倒也感觉有些道理：Sync 的本质是允许多个线程同时访问一个值，为了做到这一点我们需要把这个值的引用传递给其他线程，而这个引用就是 &amp;T，所以 Sync 的定义就是可以被解释为<font color="red">和其他的线程安全地共享对象的不可变引用。</font></p>
+<h2 id="3-mutex-deep-dive">3. Mutex Deep Dive</h2>
+<p>显然在多线程环境下，几乎所有类型都可以在不同的线程中安全的使用不可变引用，但是对于可变引用，我们需要使用 Mutex 或 RwLock 来保证线程安全。Mutex 和 RwLock 是最常见的两种允许多个线程同时修改临界数据的同步机制，同时它们也拥有内部可变性。</p>
+<p>所以，现在我们可以再一次来回顾前面提出的问题，<font color='red'>“Why T needs to be Send in order to Mutex&lt;T&gt; to be Sync?”</font></p>
+<p>其实现在的问题可以转换为：<font color='red'>如果类型 T 是非 Send 的，那么 Mutex&lt;T&gt; 为什么不能 Sync 呢？</font>按照逻辑必定存在这样一个类型 T，它是非 Send 的，从而导致 Mutex&lt;T&gt; 也不能在多线程环境下安全的使用。</p>
+<h3 id="3-1-does-t-needs-to-be-sync">3.1 Does T needs to be Sync?</h3>
+<p>为了确保 Mutex&lt;T&gt;是 Sync 的，需要确保 T 实现了 Send。那么 T 需要实现 Sync 吗？答案是否定的，具体可以通过 Cell&lt;T&gt; 这个未实现 Sync 的类型来验证。具体的例子如下：</p>
+<pre data-lang="rust" style="background-color:#282c34;color:#abb2bf;" class="language-rust "><code class="language-rust" data-lang="rust"><span>#[</span><span style="color:#e06c75;">tokio</span><span>::</span><span style="color:#e06c75;">main</span><span>]
+</span><span>async </span><span style="color:#c678dd;">fn </span><span style="color:#61afef;">main</span><span>() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+</span><span>    </span><span style="color:#c678dd;">let</span><span> cell = Arc::new(Mutex::new(Cell::new(String::from(</span><span style="color:#98c379;">&quot;bbb&quot;</span><span>))));
+</span><span>    </span><span style="color:#c678dd;">let mut</span><span> handles = vec![];
+</span><span>    </span><span style="color:#c678dd;">for</span><span> idx in </span><span style="color:#d19a66;">0</span><span>..</span><span style="color:#d19a66;">10 </span><span>{
+</span><span>        </span><span style="color:#c678dd;">let</span><span> elem = format!(</span><span style="color:#98c379;">&quot;ccc:</span><span style="color:#d19a66;">{}</span><span style="color:#98c379;">&quot;</span><span>, idx);
+</span><span>        </span><span style="color:#c678dd;">let</span><span> cell_ref = Arc::clone(&amp;cell);
+</span><span>        </span><span style="color:#c678dd;">let</span><span> h = tokio::spawn(async </span><span style="color:#c678dd;">move </span><span>{
+</span><span>            </span><span style="color:#c678dd;">let</span><span> changed = cell_ref.</span><span style="color:#56b6c2;">lock</span><span>().</span><span style="color:#56b6c2;">unwrap</span><span>();
+</span><span>            changed.</span><span style="color:#56b6c2;">set</span><span>(elem);
+</span><span>        });
+</span><span>        handles.</span><span style="color:#56b6c2;">push</span><span>(h);
+</span><span>    }
+</span><span>    futures::future::join_all(handles).await;
+</span><span>    println!(</span><span style="color:#98c379;">&quot;</span><span style="color:#d19a66;">{}</span><span style="color:#98c379;">&quot;</span><span>, cell.</span><span style="color:#56b6c2;">lock</span><span>().</span><span style="color:#56b6c2;">unwrap</span><span>().</span><span style="color:#56b6c2;">get_mut</span><span>()); </span><span style="font-style:italic;color:#5c6370;">// Maybe output: ccc:5
+</span><span>    Ok(())
+</span><span>}
+</span></code></pre>
+<p>这段代码可以正常编译运行通过，说明 Mutex&lt;T&gt; 想要是 Sync 的，只需要 T 满足 Send 即可，不管 T 是否满足 Sync。究其原因是因为 Mutex 限制了对 T 的访问，使得 T 的内部状态不会被多个线程同时访问，从而避免了 Data Race。</p>
+<h3 id="3-2-are-we-send-t-when-sending-mutex-t-across-threads">3.2 Are we send T when sending &amp;Mutex&lt;T&gt; across threads?</h3>
+<p>标题的意思旨在提出在不同的线程中使用 Mutex&lt;T&gt; 的引用是否等同于将 T 发送到了另一个线程，答案是否定的。Mutex&lt;T&gt; 的引用只是一个指向 Mutex&lt;T&gt; 的指针，而 Mutex&lt;T&gt; 本身是一个包含了 T 的结构体，所以 Mutex&lt;T&gt; 的引用并不等同于将 T 发送到了另一个线程。最直接的办法就是查看 Mutex&lt;T&gt; 修改底层 T 类型对象的方法 lock()：</p>
+<pre data-lang="rust" style="background-color:#282c34;color:#abb2bf;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#c678dd;">pub fn </span><span style="color:#61afef;">lock</span><span>(&amp;</span><span style="color:#e06c75;">self</span><span>) -&gt; LockResult&lt;MutexGuard&lt;&#39;_, T&gt;&gt;
+</span></code></pre>
+<p>继续查看 <a href="https://doc.rust-lang.org/std/sync/struct.MutexGuard.html">MutexGuard</a> 的定义：</p>
+<pre data-lang="rust" style="background-color:#282c34;color:#abb2bf;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="font-style:italic;color:#5c6370;">/// An RAII implementation of a &quot;scoped lock&quot; of a mutex. When this structure is
+</span><span style="font-style:italic;color:#5c6370;">/// dropped (falls out of scope), the lock will be unlocked.
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">/// The data protected by the mutex can be accessed through this guard via its
+</span><span style="font-style:italic;color:#5c6370;">/// [`Deref`] and [`DerefMut`] implementations.
+</span><span style="color:#c678dd;">pub struct </span><span>MutexGuard&lt;</span><span style="color:#c678dd;">&#39;a</span><span>, T: </span><span style="background-color:#f2777a;color:#272b33;">?</span><span>Sized + &#39;a&gt;
+</span></code></pre>
+<p>我们注意到他本身是一个 RAII 的结构体，同时通过实现 Deref 和 DerefMut 两个 Trait，使得我们可以通过 MutexGuard 来访问 Mutex&lt;T&gt; 中的数据。其中 DerefMut 的<a href="https://doc.rust-lang.org/std/ops/trait.DerefMut.html">定义</a>如下：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">Used</span><span> for mutable dereferencing operations, like in *v = 1;
+</span></code></pre>
+<p>此时再次回想起前面提到的问题：Why T needs to be Send for Mutex&lt;T&gt; to be Sync?</p>
+<p>我们很容易就能够理解为什么会提出这个问题，这个困惑是由 Send 命名造成的，让读者误以为 Send 是将对象自身发送到另一个线程，而实际上 Send 只是一个标记 Trait，用来指定一个类型可以在不同的时间被不同的线程安全地使用。因此，作者还特意选择了上文<a href="https://stackoverflow.com/users/2644842/jonathan-giddy">Jonathan Giddy</a>提出的这个定义。</p>
+<h3 id="3-3-example-mutex-rc">3.3 Example: Mutex&lt;Rc&gt;</h3>
+<p>现在是时候来分析一下 Mutex&lt;Rc&lt;String&gt;&gt; 这个数据结构了，我们都知道 Rc&lt;String&gt; 是没有 Sync+Send 的，</p>
+<pre data-lang="rust" style="background-color:#282c34;color:#abb2bf;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#c678dd;">impl</span><span>&lt;T: </span><span style="background-color:#f2777a;color:#272b33;">?</span><span>Sized, A: Allocator&gt; !Send for Rc&lt;T, A&gt; {}
+</span><span style="color:#c678dd;">impl</span><span>&lt;T: </span><span style="background-color:#f2777a;color:#272b33;">?</span><span>Sized, A: Allocator&gt; !Sync for Rc&lt;T, A&gt; {}
+</span></code></pre>
+<p>那么使用 Mutex&lt;Rc&lt;String&gt;&gt; 会发生什么呢？</p>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+创建一个 Mutex&lt;Rc&lt;String&gt;&gt; 对象 obj。</li>
+<li><input disabled="" type="checkbox" checked=""/>
+在多个线程中使用 obj 的引用。</li>
+<li><input disabled="" type="checkbox" checked=""/>
+Mutex 的 lock 机制会保证在任意时刻只有一个线程可以访问 obj 内部的 Rc&lt;String&gt;。</li>
+<li><input disabled="" type="checkbox" checked=""/>
+此时在多个线程中你可以直接使用 Rc&lt;String&gt; 的 clone 方法来创建 Rc&lt;String&gt; 的克隆，并且它们在 Mutex 的临界区之外也可以仍旧有效。如此相当于就有了多个不在 Mutex 的临界区内的 Rc&lt;String&gt; 的引用。</li>
+<li><input disabled="" type="checkbox" checked=""/>
+如此就会导致有多个线程在尝试 drop Rc&lt;String&gt; 的时候，由于引用计数是非原子的，就会导致出现 Data Race。</li>
+</ul>
+<h2 id="4-conclusion">4. Conclusion</h2>
+<p>“Safe to be used by two threads A and B at different times” 相对比较清楚的诠释了 <a href="https://doc.rust-lang.org/nomicon/send-and-sync.html#send-and-sync">Send 的定义</a>，同时它也没有忽略原来的内容，而只是将其封装起来。
+通过转移所有权的方式来实现线程对数据的安全访问是一种很好的方式，也是 Rust 在并发编程里面的基石。需要注意的是，纵使是 Arc&lt;Mutex&lt;T&gt;&gt; 仍旧工作在这个原则之下，虽然看上去好像有多个值的所有者，并且都可以去修改这个值，但实际上同时只有一个线程可以操作这个值，它仍旧满足 Rust 所有权的基本原则。</p>
+</article>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/rust'>Rust</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/mutex'>Mutex</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/trait'>Trait</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/translate'>Translate</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2025
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    </body>
+</html>

@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | Python基础学习</title>
+<meta
+  property="og:title"
+  content="碎碎念 | Python基础学习"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/python-basic/" />
+<meta property="og:description" content="Linux 环境下的 Python 开发基础教程。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Python基础学习" />
+<meta name="twitter:description" content="Linux 环境下的 Python 开发基础教程。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">21</span>
+        <span class="rest">Sep 20</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">Python基础学习 </h1>
+    </div>
+  </div>
+    
+  <article><h2 id="yi-kai-fa-huan-jing">一、开发环境</h2>
+<h3 id="1-an-zhuang-yi-lai-ku">1.安装依赖库</h3>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">yum -y</span><span> install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel libffi-devel
+</span></code></pre>
+<h3 id="2-xia-zai-an-zhuang-bao">2.下载安装包</h3>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="font-style:italic;color:#5c6370;"># wget下载安装包并解压至 /usr/local/python3
+</span><span style="color:#e06c75;">wget</span><span> https://www.python.org/ftp/python/3.7.0/Python-3.7.0.tgz
+</span><span style="color:#e06c75;">tar -C</span><span> /usr/local</span><span style="color:#e06c75;"> -xzvf</span><span> Python-3.7.0.tgz
+</span><span style="color:#56b6c2;">cd</span><span> /usr/local/Python-3.7.0
+</span></code></pre>
+<h3 id="3-pei-zhi-yu-an-zhuang">3.配置与安装</h3>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">./configure --prefix</span><span>=/usr/local/python3
+</span><span style="color:#e06c75;">make </span><span>&amp;&amp; </span><span style="color:#e06c75;">make</span><span> install
+</span></code></pre>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="font-style:italic;color:#5c6370;"># 上面的参数，--prefix 是预期安装目录，--enable-optimizations 是优化选项（LTO，PGO 等）加上这个 flag 编译后，性能有 10% 左右的优化，但是这会明显的增加编译时间。
+</span><span style="font-style:italic;color:#5c6370;"># 安装成功会提示如下消息:
+</span><span style="color:#e06c75;">Collecting</span><span> setuptools
+</span><span style="color:#e06c75;">Collecting</span><span> pip
+</span><span style="color:#e06c75;">Installing</span><span> collected packages: setuptools, pip
+</span><span style="color:#e06c75;">Successfully</span><span> installed pip-10.0.1 setuptools-39.0.1
+</span></code></pre>
+<h3 id="4-chuang-jian-ruan-lian-jie">4.创建软链接</h3>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">ln -s</span><span> /usr/local/python3/bin/python3.7 /usr/local/bin/python3
+</span><span style="color:#e06c75;">ln -s</span><span> /usr/local/python3/bin/pip3.7 /usr/local/bin/pip3
+</span></code></pre>
+<h3 id="5-zheng-que-shi-yong-vim-bian-xie-di-yi-ge-python-cheng-xu">5.正确使用 vim 编写第一个 python 程序</h3>
+<p>首先在 ~/.vimrc 配置 python 缩进：<code>autocmd FileType python set tabstop=4 | set expandtab | set autoindent</code><br />
+示例程序：</p>
+<pre data-lang="python" style="background-color:#282c34;color:#abb2bf;" class="language-python "><code class="language-python" data-lang="python"><span style="font-style:italic;color:#5c6370;">#!/usr/local/bin/python3
+</span><span style="font-style:italic;color:#5c6370;"># -*- coding:utf-8 -*-
+</span><span style="color:#c678dd;">for </span><span>x </span><span style="color:#c678dd;">in </span><span style="color:#56b6c2;">range</span><span>(</span><span style="color:#d19a66;">20</span><span>):
+</span><span>    </span><span style="color:#c678dd;">if </span><span>x % </span><span style="color:#d19a66;">2 </span><span>== </span><span style="color:#d19a66;">0</span><span>:
+</span><span>        </span><span style="color:#56b6c2;">print</span><span>(x)
+</span></code></pre>
+<h3 id="6-ke-bian-dui-xiang-yu-bu-ke-bian-dui-xiang">6.可变对象与不可变对象</h3>
+<ul>
+<li>可变对象：list dict set</li>
+<li>不可变对象：tuple string int float bool</li>
+<li><a href="https://zhuanlan.zhihu.com/p/34395671">可变对象与不可变对象比较</a></li>
+</ul>
+<h2 id="er-yun-suan-fu">二、运算符</h2>
+<h3 id="1-ge-shi-hua-shu-chu-s-yu-f-exp">1. 格式化输出——%s 与 f'{exp}'</h3>
+<p>格式化字符串除了%s，还可以写为 f'{表达式}'</p>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>name = </span><span style="color:#98c379;">&#39;Tom&#39;
+</span><span>years = </span><span style="color:#d19a66;">1998
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#98c379;">&#39;name = </span><span style="color:#d19a66;">%s</span><span style="color:#98c379;">, Year = </span><span style="color:#d19a66;">%d</span><span style="color:#98c379;">&#39; </span><span>% (name, years))
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&#39;name = </span><span>{name}</span><span style="color:#98c379;">, Year = </span><span>{years}</span><span style="color:#98c379;">&#39;</span><span>)
+</span></code></pre>
+<h3 id="2-shu-ju-lei-xing-zhuan-huan">2. 数据类型转换</h3>
+<h4 id="2-1-input">2.1 input</h4>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+当程序执⾏到 input ，等待⽤户输⼊，输⼊完成之后才继续向下执⾏。</li>
+<li><input disabled="" type="checkbox" checked=""/>
+在 Python 中， input 接收⽤户输⼊后，⼀般存储到变量，⽅便使⽤。</li>
+<li><input disabled="" type="checkbox" checked=""/>
+在 Python 中， input 会把接收到的任意⽤户输⼊的数据都当做字符串处理。</li>
+</ul>
+<h4 id="2-2-zhuan-huan-shu-ju-lei-xing-de-han-shu">2.2 转换数据类型的函数</h4>
+<table><thead><tr><th>函数</th><th>说明</th></tr></thead><tbody>
+<tr><td><font color=yelloerw>int(x [,base ])</td><td>将 x 转换为⼀个整数</font></td></tr>
+<tr><td><font color=yelloerw>float(x )</td><td>将 x 转换为⼀个浮点数</font></td></tr>
+<tr><td><font color=yelloerw>str(x )</td><td>将对象 x 转换为字符串</font></td></tr>
+<tr><td><font color=yelloerw>eval(str )</td><td>⽤来计算在字符串中的有效 Python 表达式,并返回⼀个对象</font></td></tr>
+<tr><td><font color=yelloerw>tuple(s )</td><td>将序列 s 转换为⼀个元组</font></td></tr>
+<tr><td><font color=yelloerw>list(s )</td><td>将序列 s 转换为⼀个列表 </font></td></tr>
+<tr><td>chr(x )</td><td>将⼀个整数转换为⼀个 Unicode 字符</td></tr>
+<tr><td>ord(x )</td><td>将⼀个字符转换为它的 ASCII 整数值</td></tr>
+<tr><td>hex(x )</td><td>将⼀个整数转换为⼀个⼗六进制字符串</td></tr>
+<tr><td>oct(x )</td><td>将⼀个整数转换为⼀个⼋进制字符串</td></tr>
+<tr><td>bin(x )</td><td>将⼀个整数转换为⼀个⼆进制字符串</td></tr>
+<tr><td>complex(real [,imag ])</td><td>创建⼀个复数，real 为实部，imag 为虚部</td></tr>
+<tr><td>repr(x )</td><td>将对象 x 转换为表达式字符串</td></tr>
+</tbody></table>
+<h4 id="2-3-shi-li">2.3 示例</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="font-style:italic;color:#5c6370;"># 1. float() -- 转换成浮点型
+</span><span>num1 = </span><span style="color:#d19a66;">1
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#56b6c2;">float</span><span>(num1))
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#56b6c2;">type</span><span>(</span><span style="color:#56b6c2;">float</span><span>(num1)))
+</span><span style="font-style:italic;color:#5c6370;"># 2. str() -- 转换成字符串类型
+</span><span>num2 = </span><span style="color:#d19a66;">10
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#56b6c2;">type</span><span>(</span><span style="color:#56b6c2;">str</span><span>(num2)))
+</span><span style="font-style:italic;color:#5c6370;"># 3. tuple() -- 将⼀个序列转换成元组
+</span><span>list1 = [</span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#d19a66;">20</span><span>, </span><span style="color:#d19a66;">30</span><span>]
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#56b6c2;">tuple</span><span>(list1))
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#56b6c2;">type</span><span>(</span><span style="color:#56b6c2;">tuple</span><span>(list1)))
+</span><span style="font-style:italic;color:#5c6370;"># 4. eval() -- 将字符串中的数据转换成Python表达式原本类型
+</span><span>str1 = </span><span style="color:#98c379;">&#39;10&#39;
+</span><span>str2 = </span><span style="color:#98c379;">&#39;[1, 2, 3]&#39;
+</span><span>str3 = </span><span style="color:#98c379;">&#39;(1000, 2000, 3000)&#39;
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#56b6c2;">type</span><span>(</span><span style="color:#56b6c2;">eval</span><span>(str1)))
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#56b6c2;">type</span><span>(</span><span style="color:#56b6c2;">eval</span><span>(str2)))
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#56b6c2;">type</span><span>(</span><span style="color:#56b6c2;">eval</span><span>(str3)))
+</span></code></pre>
+<h3 id="3-yun-suan-fu">3. 运算符</h3>
+<h4 id="3-1-fen-lei">3.1 分类</h4>
+<ul>
+<li>算数运算符</li>
+<li>赋值运算符</li>
+<li>复合赋值运算符</li>
+<li>⽐较运算符</li>
+<li>逻辑运算符</li>
+</ul>
+<h4 id="3-2-py-feng-ge-de-yun-suan-fu">3.2 py 风格的运算符</h4>
+<p><strong>算数运算符</strong></p>
+<table><thead><tr><th>运算符</th><th>描述</th><th>实例</th></tr></thead><tbody>
+<tr><td>//</td><td>整除</td><td>9 // 4 输出结果为 2</td></tr>
+<tr><td>**</td><td>指数</td><td>2 ** 4 输出结果为 16，即 <code>2*2*2*2</code></td></tr>
+</tbody></table>
+<p><strong>逻辑运算符</strong></p>
+<table><thead><tr><th>运算符</th><th>描述</th><th>实例</th></tr></thead><tbody>
+<tr><td>and</td><td>逻辑与</td><td>True and False， 返回 False</td></tr>
+<tr><td>or</td><td>逻辑或</td><td>False or True， 返回 True</td></tr>
+<tr><td>not</td><td>逻辑非</td><td>not True 返回 False</td></tr>
+</tbody></table>
+<h4 id="3-3-tuo-zhan">3.3 拓展</h4>
+<p><strong>数字之间的逻辑运算</strong><br />
+<font color=red>and 运算符，只要有⼀个值为 0，则结果为 0，否则结果为最后⼀个⾮ 0 数字<br />
+or 运算符，只有所有值为 0 结果才为 0，否则结果为第⼀个⾮ 0 数字</font></p>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>a = </span><span style="color:#d19a66;">0
+</span><span>b = </span><span style="color:#d19a66;">1
+</span><span>c = </span><span style="color:#d19a66;">2
+</span><span style="font-style:italic;color:#5c6370;"># and运算符，只要有⼀个值为0，则结果为0，否则结果为最后⼀个⾮0数字
+</span><span style="color:#56b6c2;">print</span><span>(a </span><span style="color:#c678dd;">and </span><span>b)  </span><span style="font-style:italic;color:#5c6370;"># 0
+</span><span style="color:#56b6c2;">print</span><span>(b </span><span style="color:#c678dd;">and </span><span>c)  </span><span style="font-style:italic;color:#5c6370;"># 2
+</span><span style="color:#56b6c2;">print</span><span>(c </span><span style="color:#c678dd;">and </span><span>b)  </span><span style="font-style:italic;color:#5c6370;"># 1
+</span><span style="font-style:italic;color:#5c6370;"># or运算符，只有所有值为0结果才为0，否则结果为第⼀个⾮0数字
+</span><span style="color:#56b6c2;">print</span><span>(a </span><span style="color:#c678dd;">or </span><span>b)  </span><span style="font-style:italic;color:#5c6370;"># 1
+</span><span style="color:#56b6c2;">print</span><span>(a </span><span style="color:#c678dd;">or </span><span>c)  </span><span style="font-style:italic;color:#5c6370;"># 2
+</span><span style="color:#56b6c2;">print</span><span>(b </span><span style="color:#c678dd;">or </span><span>c)  </span><span style="font-style:italic;color:#5c6370;"># 1
+</span></code></pre>
+<h2 id="san-zi-fu-chuan">三、字符串</h2>
+<h3 id="1-xiu-gai-zi-fu-chuan-da-xiao-xie">1. 修改字符串大小写</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>firstName = </span><span style="color:#98c379;">&#39;ada&#39;
+</span><span>lastName = </span><span style="color:#98c379;">&#39;LOVER&#39;
+</span><span style="color:#56b6c2;">print</span><span>(firstName.</span><span style="color:#e06c75;">title</span><span>() + </span><span style="color:#98c379;">&#39; &#39; </span><span>+ lastName.</span><span style="color:#e06c75;">title</span><span>())  </span><span style="font-style:italic;color:#5c6370;"># Ada Lover
+</span><span style="color:#56b6c2;">print</span><span>(firstName.</span><span style="color:#e06c75;">upper</span><span>())  </span><span style="font-style:italic;color:#5c6370;"># ADA
+</span><span style="color:#56b6c2;">print</span><span>(lastName.</span><span style="color:#e06c75;">lower</span><span>())  </span><span style="font-style:italic;color:#5c6370;"># lover
+</span></code></pre>
+<h3 id="2-shan-chu-kong-bai">2. 删除空白</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>favoriteLan = </span><span style="color:#98c379;">&#39; python3 &#39;
+</span><span style="color:#56b6c2;">print</span><span>(favoriteLan.</span><span style="color:#e06c75;">lstrip</span><span>())  </span><span style="font-style:italic;color:#5c6370;"># &#39;python3 &#39;
+</span><span style="color:#56b6c2;">print</span><span>(favoriteLan.</span><span style="color:#e06c75;">rstrip</span><span>())  </span><span style="font-style:italic;color:#5c6370;"># &#39; python3&#39;
+</span><span style="color:#56b6c2;">print</span><span>(favoriteLan.</span><span style="color:#e06c75;">strip</span><span>())  </span><span style="font-style:italic;color:#5c6370;"># &#39;python3&#39;
+</span></code></pre>
+<h3 id="3-zi-fu-chuan-chang-du">3. 字符串长度</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>favoriteLan = </span><span style="color:#98c379;">&#39; python3 &#39;
+</span><span style="color:#56b6c2;">print</span><span>(favoriteLan.</span><span style="color:#56b6c2;">__len__</span><span>())  </span><span style="font-style:italic;color:#5c6370;"># 9
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#56b6c2;">len</span><span>(favoriteLan))  </span><span style="font-style:italic;color:#5c6370;"># 9
+</span></code></pre>
+<h3 id="4-if-shi-li-cheng-xu">4. if 示例程序</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>cars = [</span><span style="color:#98c379;">&#39;audi&#39;</span><span>, </span><span style="color:#98c379;">&#39;bmw&#39;</span><span>, </span><span style="color:#98c379;">&#39;subaru&#39;</span><span>, </span><span style="color:#98c379;">&#39;toyota&#39;</span><span>]
+</span><span>
+</span><span style="color:#c678dd;">for </span><span>car </span><span style="color:#c678dd;">in </span><span>cars:
+</span><span>    </span><span style="color:#c678dd;">if </span><span>car == </span><span style="color:#98c379;">&#39;bmw&#39;</span><span>:
+</span><span>        </span><span style="color:#56b6c2;">print</span><span>(car.</span><span style="color:#e06c75;">upper</span><span>())
+</span><span>    </span><span style="color:#c678dd;">else</span><span>:
+</span><span>        </span><span style="color:#56b6c2;">print</span><span>(car.</span><span style="color:#e06c75;">title</span><span>())
+</span></code></pre>
+<h3 id="5-tiao-jian-ce-shi">5. 条件测试</h3>
+<p><strong>and, or, in, not in</strong></p>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>cars = [</span><span style="color:#98c379;">&#39;audi&#39;</span><span>, </span><span style="color:#98c379;">&#39;bmw&#39;</span><span>, </span><span style="color:#98c379;">&#39;subaru&#39;</span><span>, </span><span style="color:#98c379;">&#39;toyota&#39;</span><span>]
+</span><span style="font-style:italic;color:#5c6370;"># and
+</span><span style="color:#c678dd;">if </span><span>cars[</span><span style="color:#d19a66;">0</span><span>].</span><span style="color:#e06c75;">lower</span><span>() == </span><span style="color:#98c379;">&#39;audi&#39; </span><span style="color:#c678dd;">and </span><span>cars[</span><span style="color:#d19a66;">1</span><span>] == </span><span style="color:#98c379;">&#39;bo&#39;</span><span>:
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#d19a66;">True</span><span>)  </span><span style="font-style:italic;color:#5c6370;"># True
+</span><span style="color:#c678dd;">elif </span><span>cars[</span><span style="color:#d19a66;">1</span><span>] == </span><span style="color:#98c379;">&#39;bmw&#39;</span><span>:
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(cars[</span><span style="color:#d19a66;">1</span><span>].</span><span style="color:#e06c75;">title</span><span>())  </span><span style="font-style:italic;color:#5c6370;"># Bmw
+</span><span style="font-style:italic;color:#5c6370;"># in
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#98c379;">&#39;audi&#39; </span><span style="color:#c678dd;">in </span><span>cars)  </span><span style="font-style:italic;color:#5c6370;"># True
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#98c379;">&#39;bo&#39; </span><span style="color:#c678dd;">in </span><span>cars)  </span><span style="font-style:italic;color:#5c6370;"># False
+</span><span style="font-style:italic;color:#5c6370;"># not in
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#98c379;">&#39;bo&#39; </span><span style="color:#c678dd;">not in </span><span>cars)  </span><span style="font-style:italic;color:#5c6370;"># True
+</span><span>
+</span></code></pre>
+<h2 id="si-lie-biao">四、列表</h2>
+<h3 id="1-lie-biao">1. 列表</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>bicycles = [</span><span style="color:#98c379;">&#39;trek&#39;</span><span>, </span><span style="color:#98c379;">&#39;cannondale&#39;</span><span>, </span><span style="color:#98c379;">&#39;redline&#39;</span><span>, </span><span style="color:#98c379;">&#39;speci&#39;</span><span>]
+</span><span style="color:#56b6c2;">print</span><span>(bicycles)  </span><span style="font-style:italic;color:#5c6370;"># [&#39;trek&#39;, &#39;cannondale&#39;, &#39;redline&#39;, &#39;speci&#39;]
+</span></code></pre>
+<h3 id="2-zeng-jia-yuan-su">2. 增加元素</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="font-style:italic;color:#5c6370;"># add
+</span><span>bicycles.</span><span style="color:#e06c75;">append</span><span>(</span><span style="color:#98c379;">&#39;hongqi&#39;</span><span>)
+</span><span style="color:#56b6c2;">print</span><span>(bicycles)  </span><span style="font-style:italic;color:#5c6370;"># [&#39;trek&#39;, &#39;cannondale&#39;, &#39;redline&#39;, &#39;speci&#39;, &#39;hongqi&#39;]
+</span><span style="font-style:italic;color:#5c6370;"># insert
+</span><span>bicycles.</span><span style="color:#e06c75;">insert</span><span>(</span><span style="color:#d19a66;">0</span><span>,</span><span style="color:#98c379;">&#39;beijing&#39;</span><span>)
+</span><span style="color:#56b6c2;">print</span><span>(bicycles)  </span><span style="font-style:italic;color:#5c6370;"># [&#39;beijing&#39;, &#39;trek&#39;, &#39;cannondale&#39;, &#39;redline&#39;, &#39;speci&#39;, &#39;hongqi&#39;]
+</span></code></pre>
+<h3 id="3-shan-chu-yuan-su">3. 删除元素</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>bicycles = [</span><span style="color:#98c379;">&#39;trek&#39;</span><span>, </span><span style="color:#98c379;">&#39;redline&#39;</span><span>, </span><span style="color:#98c379;">&#39;speci&#39;</span><span>]
+</span><span style="color:#56b6c2;">print</span><span>(bicycles)  </span><span style="font-style:italic;color:#5c6370;"># [&#39;trek&#39;, &#39;redline&#39;, &#39;speci&#39;]
+</span></code></pre>
+<h4 id="3-1-shi-yong-del-yu-ju-shan-chu-yuan-su">3.1 使用 del 语句删除元素</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">del </span><span>bicycles[</span><span style="color:#d19a66;">0</span><span>]
+</span><span style="color:#56b6c2;">print</span><span>(bicycles)  </span><span style="font-style:italic;color:#5c6370;"># [&#39;redline&#39;, &#39;speci&#39;]
+</span></code></pre>
+<h4 id="3-2-shi-yong-fang-fa-pop-shan-chu-yuan-su">3.2 使用方法 pop 删除元素</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>bics = bicycles.</span><span style="color:#e06c75;">pop</span><span>(</span><span style="color:#d19a66;">1</span><span>)
+</span><span style="color:#56b6c2;">print</span><span>(bics)  </span><span style="font-style:italic;color:#5c6370;"># redline
+</span><span style="color:#56b6c2;">print</span><span>(bicycles)  </span><span style="font-style:italic;color:#5c6370;"># [&#39;trek&#39;, &#39;speci&#39;]
+</span><span>bicycles.</span><span style="color:#e06c75;">pop</span><span>()
+</span><span style="color:#56b6c2;">print</span><span>(bicycles)  </span><span style="font-style:italic;color:#5c6370;"># [&#39;trek&#39;]
+</span></code></pre>
+<h4 id="3-3-gen-ju-zhi-shan-chu-yuan-su">3.3 根据值删除元素</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>bicycles.</span><span style="color:#e06c75;">remove</span><span>(</span><span style="color:#98c379;">&#39;speci&#39;</span><span>)
+</span><span style="color:#56b6c2;">print</span><span>(bicycles)  </span><span style="font-style:italic;color:#5c6370;"># [&#39;trek&#39;, &#39;redline&#39;]
+</span></code></pre>
+<p><font color = red> remove 方法只删除第一个指定的值</font></p>
+<h3 id="4-zu-zhi-lie-biao">4. 组织列表</h3>
+<h4 id="4-1-sort-yong-jiu-xing-pai-xu">4.1 sort 永久性排序</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>bicycles.</span><span style="color:#e06c75;">sort</span><span>()
+</span><span style="color:#56b6c2;">print</span><span>(bicycles)  </span><span style="font-style:italic;color:#5c6370;"># [&#39;redline&#39;, &#39;speci&#39;, &#39;trek&#39;]
+</span><span>bicycles.</span><span style="color:#e06c75;">sort</span><span>(</span><span style="color:#e06c75;">reverse</span><span>=</span><span style="color:#d19a66;">True</span><span>)
+</span><span style="color:#56b6c2;">print</span><span>(bicycles)  </span><span style="font-style:italic;color:#5c6370;"># [&#39;trek&#39;, &#39;speci&#39;, &#39;redline&#39;]
+</span></code></pre>
+<h4 id="4-2-sorted-han-shu-lin-shi-dui-lie-biao-pai-xu">4.2 sorted 函数临时对列表排序</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#56b6c2;">sorted</span><span>(bicycles))
+</span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#56b6c2;">sorted</span><span>(bicycles, </span><span style="color:#e06c75;">reverse</span><span>=</span><span style="color:#d19a66;">True</span><span>))
+</span></code></pre>
+<h4 id="4-3-reverse-fang-fa-fan-zhuan-lie-biao">4.3 reverse 方法反转列表</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>bicycles.</span><span style="color:#e06c75;">reverse</span><span>()
+</span><span style="color:#56b6c2;">print</span><span>(bicycles)  </span><span style="font-style:italic;color:#5c6370;"># [&#39;speci&#39;, &#39;redline&#39;, &#39;trek&#39;]
+</span></code></pre>
+<h3 id="5-cao-zuo-lie-biao">5. 操作列表</h3>
+<h4 id="5-1-lie-biao-jie-xi">5.1 列表解析</h4>
+<p><font color = red>列表解析将 for 循环和创建新元素的代码合并为一行，并自动附加新元素</font></p>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>numbers = [value ** </span><span style="color:#d19a66;">2 </span><span style="color:#c678dd;">for </span><span>value </span><span style="color:#c678dd;">in </span><span style="color:#56b6c2;">range</span><span>(</span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#d19a66;">11</span><span>)]
+</span><span style="color:#56b6c2;">print</span><span>(numbers)  </span><span style="font-style:italic;color:#5c6370;"># [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+</span></code></pre>
+<h4 id="5-2-lie-biao-qie-pian">5.2 列表切片</h4>
+<p><strong>指定范围切片：</strong></p>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>numbers = [value ** </span><span style="color:#d19a66;">2 </span><span style="color:#c678dd;">for </span><span>value </span><span style="color:#c678dd;">in </span><span style="color:#56b6c2;">range</span><span>(</span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#d19a66;">11</span><span>)]
+</span><span style="color:#56b6c2;">print</span><span>(numbers)  </span><span style="font-style:italic;color:#5c6370;"># [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+</span><span style="color:#56b6c2;">print</span><span>(numbers[</span><span style="color:#d19a66;">0</span><span>:</span><span style="color:#d19a66;">2</span><span>])  </span><span style="font-style:italic;color:#5c6370;"># [1, 4]
+</span><span style="color:#56b6c2;">print</span><span>(numbers[:</span><span style="color:#d19a66;">4</span><span>])  </span><span style="font-style:italic;color:#5c6370;"># [1, 4, 9, 16]
+</span><span style="color:#56b6c2;">print</span><span>(numbers[</span><span style="color:#d19a66;">5</span><span>:])  </span><span style="font-style:italic;color:#5c6370;"># [36, 49, 64, 81, 100]
+</span><span style="color:#56b6c2;">print</span><span>(numbers[-</span><span style="color:#d19a66;">3</span><span>:])  </span><span style="font-style:italic;color:#5c6370;"># [64, 81, 100]
+</span></code></pre>
+<p><strong>遍历切片：</strong></p>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>numbers = [value ** </span><span style="color:#d19a66;">2 </span><span style="color:#c678dd;">for </span><span>value </span><span style="color:#c678dd;">in </span><span style="color:#56b6c2;">range</span><span>(</span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#d19a66;">11</span><span>)]
+</span><span style="color:#56b6c2;">print</span><span>(numbers)  </span><span style="font-style:italic;color:#5c6370;"># [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+</span><span style="color:#c678dd;">for </span><span>val </span><span style="color:#c678dd;">in </span><span>numbers[:</span><span style="color:#d19a66;">4</span><span>]:
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(val, </span><span style="color:#e06c75;">end</span><span>=</span><span style="color:#98c379;">&#39; &#39;</span><span>)  </span><span style="font-style:italic;color:#5c6370;"># 1 4 9 16
+</span></code></pre>
+<h4 id="5-3-fu-zhi-lie-biao">5.3 复制列表</h4>
+<p><font color = red>必须使用整个列表切片的方法来确保复制的是列表的副本，而不是使用 '='进行复制</font></p>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>numbers = [value ** </span><span style="color:#d19a66;">2 </span><span style="color:#c678dd;">for </span><span>value </span><span style="color:#c678dd;">in </span><span style="color:#56b6c2;">range</span><span>(</span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#d19a66;">6</span><span>)]
+</span><span>myNumbers = numbers[:]
+</span><span>numbers.</span><span style="color:#e06c75;">append</span><span>(</span><span style="color:#d19a66;">36</span><span>)
+</span><span>myNumbers.</span><span style="color:#e06c75;">append</span><span>(</span><span style="color:#d19a66;">49</span><span>)
+</span><span style="color:#56b6c2;">print</span><span>(numbers)  </span><span style="font-style:italic;color:#5c6370;"># [1, 4, 9, 16, 25, 36]
+</span><span style="color:#56b6c2;">print</span><span>(myNumbers)  </span><span style="font-style:italic;color:#5c6370;"># [1, 4, 9, 16, 25, 49]
+</span></code></pre>
+<h3 id="6-yuan-zu">6. 元组</h3>
+<p><font color = red>Python 将不能修改的值称为不可变的， 而不可变的列表被称为元组。
+元组中元素虽然不可以被改变，但可以通过赋值的方法改变元组变量的值
+</font></p>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>numbers = </span><span style="color:#56b6c2;">tuple</span><span>(value ** </span><span style="color:#d19a66;">2 </span><span style="color:#c678dd;">for </span><span>value </span><span style="color:#c678dd;">in </span><span style="color:#56b6c2;">range</span><span>(</span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#d19a66;">6</span><span>))
+</span><span style="color:#56b6c2;">print</span><span>(numbers)  </span><span style="font-style:italic;color:#5c6370;"># (1, 4, 9, 16, 25)
+</span><span>numbers = </span><span style="color:#56b6c2;">tuple</span><span>(value ** </span><span style="color:#d19a66;">2 </span><span style="color:#c678dd;">for </span><span>value </span><span style="color:#c678dd;">in </span><span style="color:#56b6c2;">range</span><span>(</span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#d19a66;">4</span><span>))
+</span><span style="color:#56b6c2;">print</span><span>(numbers)  </span><span style="font-style:italic;color:#5c6370;"># (1, 4, 9)
+</span></code></pre>
+<h2 id="wu-zi-dian">五、字典</h2>
+<h3 id="1-shi-li-cheng-xu">1. 示例程序</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>alien = {</span><span style="color:#98c379;">&#39;color&#39;</span><span>: </span><span style="color:#98c379;">&#39;green&#39;</span><span>, </span><span style="color:#98c379;">&#39;points&#39;</span><span>: </span><span style="color:#d19a66;">5</span><span>}
+</span><span style="font-style:italic;color:#5c6370;"># 访问字典键-值对
+</span><span style="color:#56b6c2;">print</span><span>(alien[</span><span style="color:#98c379;">&#39;color&#39;</span><span>], </span><span style="color:#e06c75;">end</span><span>=</span><span style="color:#98c379;">&#39; &#39;</span><span>)
+</span><span style="color:#56b6c2;">print</span><span>(alien[</span><span style="color:#98c379;">&#39;points&#39;</span><span>])
+</span><span style="font-style:italic;color:#5c6370;"># 添加键-值对
+</span><span>alien[</span><span style="color:#98c379;">&#39;x_position&#39;</span><span>] = </span><span style="color:#d19a66;">0
+</span><span>alien[</span><span style="color:#98c379;">&#39;y_position&#39;</span><span>] = </span><span style="color:#d19a66;">25
+</span><span style="color:#56b6c2;">print</span><span>(alien)  </span><span style="font-style:italic;color:#5c6370;"># {&#39;color&#39;: &#39;green&#39;, &#39;points&#39;: 5, &#39;x_position&#39;: 0, &#39;y_position&#39;: 25}
+</span><span style="font-style:italic;color:#5c6370;"># 删除键-值对
+</span><span style="color:#c678dd;">del </span><span>alien[</span><span style="color:#98c379;">&#39;points&#39;</span><span>]
+</span><span style="color:#56b6c2;">print</span><span>(alien)  </span><span style="font-style:italic;color:#5c6370;"># {&#39;color&#39;: &#39;green&#39;, &#39;x_position&#39;: 0, &#39;y_position&#39;: 25}
+</span></code></pre>
+<h3 id="2-bian-li-zi-dian">2. 遍历字典</h3>
+<h4 id="2-1-bian-li-suo-you-jian-zhi-dui">2.1 遍历所有键值对</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>alien = {</span><span style="color:#98c379;">&#39;x_position&#39;</span><span>: </span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#98c379;">&#39;y_position&#39;</span><span>: </span><span style="color:#d19a66;">25</span><span>}
+</span><span style="color:#c678dd;">for </span><span>key, value </span><span style="color:#c678dd;">in </span><span>alien.</span><span style="color:#e06c75;">items</span><span>():
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&#39;Key = </span><span>{key}</span><span style="color:#98c379;">, Value = </span><span>{value}</span><span style="color:#98c379;">&#39;</span><span>)
+</span><span style="font-style:italic;color:#5c6370;"># 输出：
+</span><span style="font-style:italic;color:#5c6370;"># Key = x_position, Value = 0
+</span><span style="font-style:italic;color:#5c6370;"># Key = y_position, Value = 25
+</span></code></pre>
+<h4 id="2-2-bian-li-zi-dian-suo-you-de-jian">2.2 遍历字典所有的键</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>alien = {</span><span style="color:#98c379;">&#39;x_position&#39;</span><span>: </span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#98c379;">&#39;y_position&#39;</span><span>: </span><span style="color:#d19a66;">25</span><span>}
+</span><span>names = </span><span style="color:#56b6c2;">list</span><span>(alien.</span><span style="color:#e06c75;">keys</span><span>())
+</span><span style="color:#56b6c2;">print</span><span>(names)  </span><span style="font-style:italic;color:#5c6370;"># [&#39;x_position&#39;, &#39;y_position&#39;]
+</span></code></pre>
+<h4 id="2-3-an-shun-xu-bian-li-zi-dian-zhong-de-suo-you-jian">2.3 按顺序遍历字典中的所有键</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>alien = {</span><span style="color:#98c379;">&#39;x_position&#39;</span><span>: </span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#98c379;">&#39;y_position&#39;</span><span>: </span><span style="color:#d19a66;">25</span><span>, </span><span style="color:#98c379;">&#39;a&#39;</span><span>: </span><span style="color:#98c379;">&#39;test1&#39;</span><span>, </span><span style="color:#98c379;">&#39;b&#39;</span><span>: </span><span style="color:#98c379;">&#39;test2&#39;</span><span>}
+</span><span style="color:#c678dd;">for </span><span>key </span><span style="color:#c678dd;">in </span><span style="color:#56b6c2;">sorted</span><span>(alien.</span><span style="color:#e06c75;">keys</span><span>()):
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(key, </span><span style="color:#e06c75;">end</span><span>=</span><span style="color:#98c379;">&#39; &#39;</span><span>)
+</span></code></pre>
+<h4 id="2-4-bian-li-zi-dian-suo-you-de-zhi">2.4 遍历字典所有的值</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>alien = {</span><span style="color:#98c379;">&#39;x_position&#39;</span><span>: </span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#98c379;">&#39;y_position&#39;</span><span>: </span><span style="color:#d19a66;">25</span><span>, </span><span style="color:#98c379;">&#39;a&#39;</span><span>: </span><span style="color:#98c379;">&#39;test1&#39;</span><span>, </span><span style="color:#98c379;">&#39;b&#39;</span><span>: </span><span style="color:#98c379;">&#39;test2&#39;</span><span>}
+</span><span style="color:#c678dd;">for </span><span>value </span><span style="color:#c678dd;">in </span><span>alien.</span><span style="color:#e06c75;">values</span><span>():
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(value)
+</span></code></pre>
+<h3 id="3-qian-tao">3. 嵌套</h3>
+<h4 id="3-1-zi-dian-lie-biao">3.1 字典列表</h4>
+<p><font color=red>即在列表中嵌套字典</font></p>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>alien = {</span><span style="color:#98c379;">&#39;x_position&#39;</span><span>: </span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#98c379;">&#39;y_position&#39;</span><span>: </span><span style="color:#d19a66;">25</span><span>}
+</span><span>aliens = []
+</span><span style="color:#c678dd;">for </span><span>index </span><span style="color:#c678dd;">in </span><span style="color:#56b6c2;">range</span><span>(</span><span style="color:#d19a66;">30</span><span>):
+</span><span>    aliens.</span><span style="color:#e06c75;">append</span><span>(alien)
+</span><span style="color:#c678dd;">for </span><span>app </span><span style="color:#c678dd;">in </span><span>aliens[:</span><span style="color:#d19a66;">5</span><span>]:
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(app)
+</span></code></pre>
+<h4 id="3-2-zi-dian-zhong-cun-chu-lie-biao">3.2 字典中存储列表</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>favoriteLan = {
+</span><span>    </span><span style="color:#98c379;">&#39;jen&#39;</span><span>: [</span><span style="color:#98c379;">&#39;python&#39;</span><span>, </span><span style="color:#98c379;">&#39;rust&#39;</span><span>],
+</span><span>    </span><span style="color:#98c379;">&#39;sarah&#39;</span><span>: [</span><span style="color:#98c379;">&#39;c&#39;</span><span>],
+</span><span>    </span><span style="color:#98c379;">&#39;edward&#39;</span><span>: [</span><span style="color:#98c379;">&#39;ruby&#39;</span><span>, </span><span style="color:#98c379;">&#39;go&#39;</span><span>],
+</span><span>    </span><span style="color:#98c379;">&#39;phil&#39;</span><span>: [</span><span style="color:#98c379;">&#39;shell&#39;</span><span>, </span><span style="color:#98c379;">&#39;php&#39;</span><span>],
+</span><span>}
+</span><span>
+</span><span style="color:#c678dd;">for </span><span>name, languages </span><span style="color:#c678dd;">in </span><span>favoriteLan.</span><span style="color:#e06c75;">items</span><span>():
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#98c379;">&quot;</span><span style="color:#56b6c2;">\n</span><span style="color:#98c379;">&quot; </span><span>+ name.</span><span style="color:#e06c75;">title</span><span>() + </span><span style="color:#98c379;">&quot;&#39;s favorite languages are: &quot;</span><span>)
+</span><span>    </span><span style="color:#c678dd;">for </span><span>language </span><span style="color:#c678dd;">in </span><span>languages:
+</span><span>        </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#98c379;">&quot;</span><span style="color:#56b6c2;">\t</span><span style="color:#98c379;">&quot; </span><span>+ language.</span><span style="color:#e06c75;">title</span><span>())
+</span></code></pre>
+<h4 id="3-3-zi-dian-zhong-cun-chu-zi-dian">3.3 字典中存储字典</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span>users = {
+</span><span>    </span><span style="color:#98c379;">&#39;torvalds&#39;</span><span>: {
+</span><span>        </span><span style="color:#98c379;">&#39;first&#39;</span><span>: </span><span style="color:#98c379;">&#39;linus&#39;</span><span>,
+</span><span>        </span><span style="color:#98c379;">&#39;last&#39;</span><span>: </span><span style="color:#98c379;">&#39;torvalds&#39;</span><span>,
+</span><span>        </span><span style="color:#98c379;">&#39;location&#39;</span><span>: </span><span style="color:#98c379;">&#39;finland&#39;
+</span><span>    },
+</span><span>    </span><span style="color:#98c379;">&#39;buterin&#39;</span><span>: {
+</span><span>        </span><span style="color:#98c379;">&#39;first&#39;</span><span>: </span><span style="color:#98c379;">&#39;vitalik&#39;</span><span>,
+</span><span>        </span><span style="color:#98c379;">&#39;last&#39;</span><span>: </span><span style="color:#98c379;">&#39;buterin&#39;</span><span>,
+</span><span>        </span><span style="color:#98c379;">&#39;location&#39;</span><span>: </span><span style="color:#98c379;">&#39;russia&#39;
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span style="color:#c678dd;">for </span><span>name, user </span><span style="color:#c678dd;">in </span><span>users.</span><span style="color:#e06c75;">items</span><span>():
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;</span><span style="color:#56b6c2;">\n</span><span style="color:#98c379;">Username: </span><span>{name.</span><span style="color:#e06c75;">title</span><span>()}</span><span style="color:#98c379;">&quot;</span><span>)
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;first: </span><span>{user[</span><span style="color:#98c379;">&#39;first&#39;</span><span>].</span><span style="color:#e06c75;">title</span><span>()}</span><span style="color:#98c379;">, last: </span><span>{user[</span><span style="color:#98c379;">&#39;last&#39;</span><span>].</span><span style="color:#e06c75;">title</span><span>()}</span><span style="color:#98c379;">, location: </span><span>{user[</span><span style="color:#98c379;">&#39;location&#39;</span><span>].</span><span style="color:#e06c75;">title</span><span>()}</span><span style="color:#98c379;">&quot;</span><span>)
+</span></code></pre>
+<p>输出：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">Username:</span><span> Torvalds
+</span><span style="color:#e06c75;">first:</span><span> Linus, last: Torvalds, location: Finland
+</span><span>
+</span><span style="color:#e06c75;">Username:</span><span> Buterin
+</span><span style="color:#e06c75;">first:</span><span> Vitalik, last: Buterin, location: Russia
+</span></code></pre>
+<h2 id="liu-han-shu">六、函数</h2>
+<h3 id="1-han-shu-shi-li">1. 函数示例</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">def </span><span style="color:#61afef;">greet_user</span><span>(</span><span style="color:#e06c75;">username</span><span>):
+</span><span>    </span><span style="font-style:italic;color:#5c6370;">&quot;&quot;&quot;greet example&quot;&quot;&quot;
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;Hello, </span><span>{username.</span><span style="color:#e06c75;">title</span><span>()}</span><span style="color:#98c379;">&quot;</span><span>)
+</span><span>
+</span><span>
+</span><span style="color:#e06c75;">greet_user</span><span>(</span><span style="color:#98c379;">&#39;siya&#39;</span><span>)
+</span><span style="color:#56b6c2;">print</span><span>(greet_user.__doc__)
+</span></code></pre>
+<h3 id="2-chuan-di-shi-can">2. 传递实参</h3>
+<h4 id="2-1-wei-zhi-shi-can">2.1 位置实参</h4>
+<p><font color=red>实参和形参完全对应的函数参数关联方式</font></p>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">def </span><span style="color:#61afef;">describe_pet</span><span>(</span><span style="color:#e06c75;">animal_type</span><span>, </span><span style="color:#e06c75;">pet_name</span><span>):
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;I have a </span><span>{animal_type}</span><span style="color:#98c379;">.&quot;</span><span>)
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;My </span><span>{animal_type}</span><span style="color:#98c379;">&#39;s name is </span><span>{pet_name.</span><span style="color:#e06c75;">title</span><span>()}</span><span style="color:#98c379;">.&quot;</span><span>)
+</span><span>
+</span><span>
+</span><span style="color:#e06c75;">describe_pet</span><span>(</span><span style="color:#98c379;">&#39;hamster&#39;</span><span>, </span><span style="color:#98c379;">&#39;harry&#39;</span><span>)
+</span></code></pre>
+<h4 id="2-2-guan-jian-zi-shi-can">2.2 关键字实参</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#e06c75;">describe_pet</span><span>(</span><span style="color:#e06c75;">animal_type</span><span>=</span><span style="color:#98c379;">&#39;hamster&#39;</span><span>, </span><span style="color:#e06c75;">pet_name</span><span>=</span><span style="color:#98c379;">&#39;harry&#39;</span><span>)
+</span><span style="color:#e06c75;">describe_pet</span><span>(</span><span style="color:#e06c75;">pet_name</span><span>=</span><span style="color:#98c379;">&#39;harry&#39;</span><span>, </span><span style="color:#e06c75;">animal_type</span><span>=</span><span style="color:#98c379;">&#39;hamster&#39;</span><span>)
+</span></code></pre>
+<h4 id="2-3-mo-ren-zhi">2.3 默认值</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">def </span><span style="color:#61afef;">describe_pet</span><span>(</span><span style="color:#e06c75;">animal_type</span><span>, </span><span style="color:#e06c75;">pet_name</span><span>=</span><span style="color:#98c379;">&#39;harry&#39;</span><span>):
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;I have a </span><span>{animal_type}</span><span style="color:#98c379;">.&quot;</span><span>)
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;My </span><span>{animal_type}</span><span style="color:#98c379;">&#39;s name is </span><span>{pet_name.</span><span style="color:#e06c75;">title</span><span>()}</span><span style="color:#98c379;">.&quot;</span><span>)
+</span><span>
+</span><span>
+</span><span style="color:#e06c75;">describe_pet</span><span>(</span><span style="color:#98c379;">&#39;hamster&#39;</span><span>, </span><span style="color:#98c379;">&#39;vitalik&#39;</span><span>)
+</span><span style="color:#e06c75;">describe_pet</span><span>(</span><span style="color:#98c379;">&#39;dog&#39;</span><span>)
+</span></code></pre>
+<h3 id="3-fan-hui-zhi">3. 返回值</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">def </span><span style="color:#61afef;">get_formatted_name</span><span>(</span><span style="color:#e06c75;">first_name</span><span>, </span><span style="color:#e06c75;">last_name</span><span>):
+</span><span>    full_name = first_name + </span><span style="color:#98c379;">&#39; &#39; </span><span>+ last_name
+</span><span>    </span><span style="color:#c678dd;">return </span><span>full_name.</span><span style="color:#e06c75;">title</span><span>()
+</span><span>
+</span><span>
+</span><span>full_name = </span><span style="color:#e06c75;">get_formatted_name</span><span>(</span><span style="color:#98c379;">&#39;vitalik&#39;</span><span>, </span><span style="color:#98c379;">&#39;buterin&#39;</span><span>)
+</span><span style="color:#56b6c2;">print</span><span>(full_name)  </span><span style="font-style:italic;color:#5c6370;"># Vitalik Buterin
+</span></code></pre>
+<h3 id="4-chuan-di-lie-biao">4. 传递列表</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">def </span><span style="color:#61afef;">aTob</span><span>(</span><span style="color:#e06c75;">nums1</span><span>, </span><span style="color:#e06c75;">nums2</span><span>):
+</span><span>    </span><span style="color:#c678dd;">while </span><span>nums1:
+</span><span>        nums2.</span><span style="color:#e06c75;">append</span><span>(nums1.</span><span style="color:#e06c75;">pop</span><span>())
+</span><span>
+</span><span>
+</span><span>nums1 = [val * </span><span style="color:#d19a66;">2 </span><span style="color:#c678dd;">for </span><span>val </span><span style="color:#c678dd;">in </span><span style="color:#56b6c2;">range</span><span>(</span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#d19a66;">10</span><span>)]
+</span><span>nums2 = []
+</span><span style="color:#e06c75;">aTob</span><span>(nums1[:], nums2)
+</span></code></pre>
+<h3 id="5-chuan-di-ren-yi-shu-liang-de-shi-can">5. 传递任意数量的实参</h3>
+<h4 id="5-1-shi-li-cheng-xu">5.1 示例程序</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">def </span><span style="color:#61afef;">aTob</span><span>(*</span><span style="color:#e06c75;">nums</span><span>):
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(nums)
+</span><span style="color:#e06c75;">aTob</span><span>(</span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#d19a66;">2</span><span>, </span><span style="color:#d19a66;">4</span><span>)  </span><span style="font-style:italic;color:#5c6370;"># (1, 2, 4)
+</span></code></pre>
+<h4 id="5-2-jie-he-shi-yong-wei-zhi-shi-can-yu-ren-yi-shu-liang-shi-can">5.2 结合使用位置实参与任意数量实参</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">def </span><span style="color:#61afef;">aTob</span><span>(</span><span style="color:#e06c75;">nums1</span><span>, *</span><span style="color:#e06c75;">nums2</span><span>):
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(nums1)
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(nums2)
+</span><span style="color:#e06c75;">aTob</span><span>(</span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#d19a66;">2</span><span>, </span><span style="color:#d19a66;">4</span><span>)
+</span><span style="font-style:italic;color:#5c6370;"># 1
+</span><span style="font-style:italic;color:#5c6370;"># (2, 4)
+</span></code></pre>
+<h4 id="5-3-shi-yong-ren-yi-shu-liang-de-guan-jian-zi-shi-can">5.3 使用任意数量的关键字实参</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">def </span><span style="color:#61afef;">aTob</span><span>(</span><span style="color:#e06c75;">first</span><span>, </span><span style="color:#e06c75;">last</span><span>, **</span><span style="color:#e06c75;">nums</span><span>):
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;</span><span>{first.</span><span style="color:#e06c75;">title</span><span>()} {last.</span><span style="color:#e06c75;">title</span><span>()}</span><span style="color:#98c379;">.&quot;</span><span>)
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(nums)
+</span><span style="color:#e06c75;">aTob</span><span>(</span><span style="color:#98c379;">&#39;vitalik&#39;</span><span>, </span><span style="color:#98c379;">&#39;buterin&#39;</span><span>, </span><span style="color:#e06c75;">age</span><span>=</span><span style="color:#d19a66;">31</span><span>, </span><span style="color:#e06c75;">sex</span><span>=</span><span style="color:#98c379;">&#39;male&#39;</span><span>)
+</span><span style="font-style:italic;color:#5c6370;"># Vitalik Buterin.
+</span><span style="font-style:italic;color:#5c6370;"># {&#39;age&#39;: 31, &#39;sex&#39;: &#39;male&#39;}
+</span></code></pre>
+<h2 id="qi-lei">七、类</h2>
+<h3 id="1-lei-shi-li">1. 类示例</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">class </span><span style="color:#e5c07b;">Dog</span><span>():
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#56b6c2;">__init__</span><span>(</span><span style="color:#e06c75;">self</span><span>, </span><span style="color:#e06c75;">name</span><span>, </span><span style="color:#e06c75;">age</span><span>):
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.name = name
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.age = age
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#61afef;">sit</span><span>(</span><span style="color:#e06c75;">self</span><span>):
+</span><span>        </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;</span><span>{</span><span style="color:#e06c75;">self</span><span>.name.</span><span style="color:#e06c75;">title</span><span>()}</span><span style="color:#98c379;"> is now sitting.&quot;</span><span>)
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#61afef;">roll_over</span><span>(</span><span style="color:#e06c75;">self</span><span>):
+</span><span>        </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;</span><span>{</span><span style="color:#e06c75;">self</span><span>.name.</span><span style="color:#e06c75;">title</span><span>()}</span><span style="color:#98c379;"> rolled over.&quot;</span><span>)
+</span><span>
+</span><span>
+</span><span>dog = </span><span style="color:#e06c75;">Dog</span><span>(</span><span style="color:#98c379;">&#39;vitalik&#39;</span><span>, </span><span style="color:#d19a66;">20</span><span>)
+</span><span>dog.</span><span style="color:#e06c75;">sit</span><span>()
+</span><span>dog.</span><span style="color:#e06c75;">roll_over</span><span>()
+</span></code></pre>
+<h3 id="2-lei-de-ji-cheng">2. 类的继承</h3>
+<h4 id="2-1-ji-cheng-shi-li">2.1 继承示例</h4>
+<p><strong>基类为 Car , 派生类为 ElectricCar</strong></p>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">class </span><span style="color:#e5c07b;">Car</span><span>:
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#56b6c2;">__init__</span><span>(</span><span style="color:#e06c75;">self</span><span>, </span><span style="color:#e06c75;">make</span><span>, </span><span style="color:#e06c75;">model</span><span>, </span><span style="color:#e06c75;">year</span><span>):
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.make = make
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.model = model
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.year = year
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.odometer_reading = </span><span style="color:#d19a66;">0
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#61afef;">get_descriptive_name</span><span>(</span><span style="color:#e06c75;">self</span><span>):
+</span><span>        long_name = </span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;</span><span>{</span><span style="color:#e06c75;">self</span><span>.year} {</span><span style="color:#e06c75;">self</span><span>.make} {</span><span style="color:#e06c75;">self</span><span>.model}</span><span style="color:#98c379;">&quot;
+</span><span>        </span><span style="color:#c678dd;">return </span><span>long_name
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#61afef;">read_odometer</span><span>(</span><span style="color:#e06c75;">self</span><span>):
+</span><span>        </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;This car has </span><span>{</span><span style="color:#e06c75;">self</span><span>.odometer_reading}</span><span style="color:#98c379;"> miles on it.&quot;</span><span>)
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#61afef;">update_odometer</span><span>(</span><span style="color:#e06c75;">self</span><span>, </span><span style="color:#e06c75;">mileage</span><span>):
+</span><span>        </span><span style="color:#c678dd;">if </span><span>mileage &gt;= </span><span style="color:#e06c75;">self</span><span>.odometer_reading:
+</span><span>            </span><span style="color:#e06c75;">self</span><span>.odometer_reading = mileage
+</span><span>        </span><span style="color:#c678dd;">else</span><span>:
+</span><span>            </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#98c379;">&quot;You can&#39;t roll back an odometer!&quot;</span><span>)
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#61afef;">increment_odometer</span><span>(</span><span style="color:#e06c75;">self</span><span>, </span><span style="color:#e06c75;">miles</span><span>):
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.odometer_reading += miles
+</span><span>
+</span><span>
+</span><span style="color:#c678dd;">class </span><span style="color:#e5c07b;">ElectricCar</span><span>(</span><span style="color:#98c379;">Car</span><span>):
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#56b6c2;">__init__</span><span>(</span><span style="color:#e06c75;">self</span><span>, </span><span style="color:#e06c75;">make</span><span>, </span><span style="color:#e06c75;">model</span><span>, </span><span style="color:#e06c75;">year</span><span>):
+</span><span>        </span><span style="color:#56b6c2;">super</span><span>().</span><span style="color:#56b6c2;">__init__</span><span>(make, model, year)
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.battery_size = </span><span style="color:#d19a66;">70
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#61afef;">describe_battery</span><span>(</span><span style="color:#e06c75;">self</span><span>):
+</span><span>        </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;This car has a </span><span>{</span><span style="color:#e06c75;">self</span><span>.battery_size}</span><span style="color:#98c379;">-kWh battery&quot;</span><span>)
+</span><span>
+</span><span>
+</span><span>car = </span><span style="color:#e06c75;">ElectricCar</span><span>(</span><span style="color:#98c379;">&#39;tesla&#39;</span><span>, </span><span style="color:#98c379;">&#39;model s&#39;</span><span>, </span><span style="color:#d19a66;">2016</span><span>)
+</span><span>longName = car.</span><span style="color:#e06c75;">get_descriptive_name</span><span>()
+</span><span style="color:#56b6c2;">print</span><span>(longName)  </span><span style="font-style:italic;color:#5c6370;"># 2016 tesla model s
+</span><span>car.</span><span style="color:#e06c75;">describe_battery</span><span>()  </span><span style="font-style:italic;color:#5c6370;"># This car has a 70-kWh battery
+</span></code></pre>
+<h4 id="2-2-zhong-xie-fu-lei-fang-fa">2.2 重写父类方法</h4>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">class </span><span style="color:#e5c07b;">Car</span><span>:
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#61afef;">fill_gas_tank</span><span>(</span><span style="color:#e06c75;">self</span><span>):
+</span><span>        </span><span style="color:#c678dd;">pass
+</span><span style="color:#c678dd;">class </span><span style="color:#e5c07b;">ElectricCar</span><span>(</span><span style="color:#98c379;">Car</span><span>):
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#61afef;">fill_gas_tank</span><span>(</span><span style="color:#e06c75;">self</span><span>):
+</span><span>        </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#98c379;">&quot;This car doesn&#39;t need a gas tank!&quot;</span><span>)
+</span><span>car = </span><span style="color:#e06c75;">ElectricCar</span><span>()
+</span><span>car.</span><span style="color:#e06c75;">fill_gas_tank</span><span>()
+</span></code></pre>
+<h3 id="3-shi-yong-ordereddict-lei">3. 使用 OrderedDict 类</h3>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="color:#c678dd;">from </span><span>collections </span><span style="color:#c678dd;">import </span><span>OrderedDict
+</span><span>favorite_languages = </span><span style="color:#e06c75;">OrderedDict</span><span>()
+</span><span>favorite_languages[</span><span style="color:#98c379;">&#39;jen&#39;</span><span>] = [</span><span style="color:#98c379;">&#39;python&#39;</span><span>, </span><span style="color:#98c379;">&#39;rust&#39;</span><span>]
+</span><span>favorite_languages[</span><span style="color:#98c379;">&#39;sarah&#39;</span><span>] = [</span><span style="color:#98c379;">&#39;c&#39;</span><span>]
+</span><span>favorite_languages[</span><span style="color:#98c379;">&#39;edward&#39;</span><span>] = [</span><span style="color:#98c379;">&#39;ruby&#39;</span><span>, </span><span style="color:#98c379;">&#39;go&#39;</span><span>]
+</span><span>favorite_languages[</span><span style="color:#98c379;">&#39;phil&#39;</span><span>] = [</span><span style="color:#98c379;">&#39;shell&#39;</span><span>, </span><span style="color:#98c379;">&#39;php&#39;</span><span>]
+</span><span>
+</span><span style="color:#c678dd;">for </span><span>name, languages </span><span style="color:#c678dd;">in </span><span>favorite_languages.</span><span style="color:#e06c75;">items</span><span>():
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;</span><span style="color:#56b6c2;">\n</span><span>{name.</span><span style="color:#e06c75;">title</span><span>()}</span><span style="color:#98c379;">&#39;s languages: &quot;</span><span>, </span><span style="color:#e06c75;">end</span><span>=</span><span style="color:#98c379;">&#39; &#39;</span><span>)
+</span><span>    </span><span style="color:#c678dd;">for </span><span>language </span><span style="color:#c678dd;">in </span><span>languages:
+</span><span>        </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#c678dd;">f</span><span style="color:#98c379;">&quot;</span><span>{language.</span><span style="color:#e06c75;">title</span><span>()}</span><span style="color:#98c379;">&quot;</span><span>, </span><span style="color:#e06c75;">end</span><span>=</span><span style="color:#98c379;">&#39; &#39;</span><span>)
+</span></code></pre>
+<h2 id="ba-gui-bian-cheng">八、GUI 编程</h2>
+<h3 id="1-gui-bian-cheng-ji-chu-tkinter">1. GUI 编程基础(Tkinter)</h3>
+<p><strong>常用 Python GUI 库如下：</strong></p>
+<ul>
+<li>Tkinter： Tkinter 模块(Tk 接口)是 Python 的标准 Tk GUI 工具包的接口 .Tk 和 Tkinter 可以在大多数的 Unix 平台下使用,同样可以应用在 Windows 和 Macintosh 系统里。Tk8.0 的后续版本可以实现本地窗口风格,并良好地运行在绝大多数平台中。</li>
+<li>wxPython：wxPython 是一款开源软件，是 Python 语言的一套优秀的 GUI 图形库，允许 Python 程序员很方便的创建完整的、功能健全的 GUI 用户界面。</li>
+<li>Jython：Jython 程序可以和 Java 无缝集成。</li>
+</ul>
+<h4 id="1-1-tkinter-bian-cheng">1.1 Tkinter 编程</h4>
+<p>创建一个 GUI 程序:</p>
+<ul>
+<li>1、导入 Tkinter 模块</li>
+<li>2、创建控件</li>
+<li>3、指定这个控件的 master， 即这个控件属于哪一个</li>
+<li>4、告诉 GM(geometry manager) 有一个控件产生了。</li>
+</ul>
+<p><strong>示例：</strong></p>
+<pre data-lang="py" style="background-color:#282c34;color:#abb2bf;" class="language-py "><code class="language-py" data-lang="py"><span style="font-style:italic;color:#5c6370;"># This is a sample Python script.
+</span><span style="font-style:italic;color:#5c6370;"># Press Shift+F10 to execute it or replace it with your code.
+</span><span style="font-style:italic;color:#5c6370;"># Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+</span><span style="color:#c678dd;">import </span><span>tkinter
+</span><span>
+</span><span>top = tkinter.</span><span style="color:#e06c75;">Tk</span><span>()
+</span><span style="font-style:italic;color:#5c6370;"># 进入消息循环
+</span><span>top.</span><span style="color:#e06c75;">mainloop</span><span>()
+</span></code></pre>
+<p>执行之后显示：<br />
+<img src="https://s1.ax1x.com/2020/10/31/BUxYqA.png" alt="BUxYqA.png" /></p>
+<h4 id="1-2-tkinter-zu-jian">1.2 Tkinter 组件</h4>
+<p>目前有 15 种 Tkinter 的部件。我们提出这些部件以及一个简短的介绍，在下面的表:</p>
+<table><thead><tr><th style="text-align: center">控件</th><th style="text-align: center">描述</th></tr></thead><tbody>
+<tr><td style="text-align: center"><a href="https://www.runoob.com/python/python-tk-button.html">Button</a></td><td style="text-align: center">按钮控件；在程序中显示按钮。</td></tr>
+<tr><td style="text-align: center"><a href="https://www.runoob.com/python/python-tk-canvas.html">Canvas</a></td><td style="text-align: center">画布控件；显示图形元素如线条或文本</td></tr>
+<tr><td style="text-align: center"><a href="https://www.runoob.com/python/python-tk-checkbutton.html">Checkbutton</a></td><td style="text-align: center">多选框控件；用于在程序中提供多项选择框</td></tr>
+<tr><td style="text-align: center"><a href="https://www.runoob.com/python/python-tkinter-entry.html">Entry</a></td><td style="text-align: center">输入控件；用于显示简单的文本内容</td></tr>
+<tr><td style="text-align: center"><a href="https://www.runoob.com/python/python-tk-frame.html">Frame</a></td><td style="text-align: center">框架控件；在屏幕上显示一个矩形区域，多用来作为容器</td></tr>
+<tr><td style="text-align: center"><a href="https://www.runoob.com/python/python-tk-label.html">Label</a></td><td style="text-align: center">标签控件；可以显示文本和位图</td></tr>
+<tr><td style="text-align: center">Listbox</td><td style="text-align: center">列表框控件；在 Listbox 窗口小部件是用来显示一个字符串列表给用户</td></tr>
+<tr><td style="text-align: center">Menubutton</td><td style="text-align: center">菜单按钮控件，用于显示菜单项。</td></tr>
+<tr><td style="text-align: center">Menu</td><td style="text-align: center">菜单控件；显示菜单栏,下拉菜单和弹出菜单</td></tr>
+<tr><td style="text-align: center">Message</td><td style="text-align: center">消息控件；用来显示多行文本，与 label 比较类似</td></tr>
+<tr><td style="text-align: center">Radiobutton</td><td style="text-align: center">单选按钮控件；显示一个单选的按钮状态</td></tr>
+<tr><td style="text-align: center">Scale</td><td style="text-align: center">范围控件；显示一个数值刻度，为输出限定范围的数字区间</td></tr>
+<tr><td style="text-align: center">Scrollbar</td><td style="text-align: center">滚动条控件，当内容超过可视化区域时使用，如列表框。.</td></tr>
+<tr><td style="text-align: center">Text</td><td style="text-align: center">文本控件；用于显示多行文本</td></tr>
+<tr><td style="text-align: center">Toplevel</td><td style="text-align: center">容器控件；用来提供一个单独的对话框，和 Frame 比较类似</td></tr>
+<tr><td style="text-align: center">Spinbox</td><td style="text-align: center">输入控件；与 Entry 类似，但是可以指定输入范围值</td></tr>
+<tr><td style="text-align: center">PanedWindow</td><td style="text-align: center">PanedWindow 是一个窗口布局管理的插件，可以包含一个或者多个子控件。</td></tr>
+<tr><td style="text-align: center">LabelFrame</td><td style="text-align: center">labelframe 是一个简单的容器控件。常用与复杂的窗口布局。</td></tr>
+<tr><td style="text-align: center">tkMessageBox</td><td style="text-align: center">用于显示你应用程序的消息框。</td></tr>
+</tbody></table>
+<h4 id="1-3-biao-zhun-shu-xing">1.3 标准属性</h4>
+<p>标准属性也就是所有控件的共同属性，如大小，字体和颜色等等。</p>
+<table><thead><tr><th style="text-align: center">属性</th><th style="text-align: center">描述</th></tr></thead><tbody>
+<tr><td style="text-align: center">Dimension</td><td style="text-align: center">控件大小；</td></tr>
+<tr><td style="text-align: center">Color</td><td style="text-align: center">控件颜色；</td></tr>
+<tr><td style="text-align: center">Font</td><td style="text-align: center">控件字体；</td></tr>
+<tr><td style="text-align: center">Anchor</td><td style="text-align: center">锚点；</td></tr>
+<tr><td style="text-align: center">Relief</td><td style="text-align: center">控件样式；</td></tr>
+<tr><td style="text-align: center">Bitmap</td><td style="text-align: center">位图；</td></tr>
+<tr><td style="text-align: center">Cursor</td><td style="text-align: center">光标；</td></tr>
+</tbody></table>
+<h4 id="1-4-ji-he-guan-li">1.4 几何管理</h4>
+<p>Tkinter 控件有特定的几何状态管理方法，管理整个控件区域组织，以下是 Tkinter 公开的几何管理类：包、网格、位置</p>
+<table><thead><tr><th style="text-align: center">几何方法</th><th style="text-align: center">描述</th></tr></thead><tbody>
+<tr><td style="text-align: center">pack()</td><td style="text-align: center">包装；</td></tr>
+<tr><td style="text-align: center">grid()</td><td style="text-align: center">网格；</td></tr>
+<tr><td style="text-align: center">place()</td><td style="text-align: center">位置；</td></tr>
+</tbody></table>
+<h3 id="2-tkinter-bian-cheng-shi-zhan">2. Tkinter 编程实战</h3>
+<h4 id="2-1-frame-yu-pack-de-chu-ti-yan">2.1 Frame 与 pack 的初体验</h4>
+<pre data-lang="python" style="background-color:#282c34;color:#abb2bf;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#c678dd;">from </span><span>tkinter </span><span style="color:#c678dd;">import </span><span style="color:#d19a66;">*
+</span><span style="color:#c678dd;">def </span><span style="color:#61afef;">say_hi</span><span>():
+</span><span>    </span><span style="color:#56b6c2;">print</span><span>(</span><span style="color:#98c379;">&quot;hello ~ !&quot;</span><span>)
+</span><span>root = </span><span style="color:#e06c75;">Tk</span><span>()
+</span><span>frame1 = </span><span style="color:#e06c75;">Frame</span><span>(root, </span><span style="color:#e06c75;">bd</span><span>=</span><span style="color:#d19a66;">128</span><span>, </span><span style="color:#e06c75;">cursor</span><span>=</span><span style="color:#98c379;">&quot;plus&quot;</span><span>, </span><span style="color:#e06c75;">bg</span><span>=</span><span style="color:#98c379;">&quot;white&quot;</span><span>)
+</span><span>frame2 = </span><span style="color:#e06c75;">Frame</span><span>(root, </span><span style="color:#e06c75;">bd</span><span>=</span><span style="color:#d19a66;">128</span><span>, </span><span style="color:#e06c75;">cursor</span><span>=</span><span style="color:#98c379;">&quot;circle&quot;</span><span>, </span><span style="color:#e06c75;">bg</span><span>=</span><span style="color:#98c379;">&quot;pink&quot;</span><span>)
+</span><span>root.</span><span style="color:#e06c75;">title</span><span>(</span><span style="color:#98c379;">&quot;tkinter frame&quot;</span><span>)
+</span><span>label = </span><span style="color:#e06c75;">Label</span><span>(frame1, </span><span style="color:#e06c75;">text</span><span>=</span><span style="color:#98c379;">&quot;Label&quot;</span><span>, </span><span style="color:#e06c75;">bg</span><span>=</span><span style="color:#98c379;">&quot;red&quot;</span><span>)
+</span><span>label.</span><span style="color:#e06c75;">pack</span><span>(</span><span style="color:#e06c75;">fill</span><span>=X)
+</span><span>hi_there = </span><span style="color:#e06c75;">Button</span><span>(frame2, </span><span style="color:#e06c75;">text</span><span>=</span><span style="color:#98c379;">&quot;say hi~&quot;</span><span>, </span><span style="color:#e06c75;">command</span><span>=say_hi)
+</span><span>hi_there.</span><span style="color:#e06c75;">pack</span><span>()
+</span><span>frame1.</span><span style="color:#e06c75;">pack</span><span>(</span><span style="color:#e06c75;">padx</span><span>=</span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#e06c75;">pady</span><span>=</span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#e06c75;">side</span><span>=</span><span style="color:#e06c75;">RIGHT</span><span>)
+</span><span>frame2.</span><span style="color:#e06c75;">pack</span><span>(</span><span style="color:#e06c75;">padx</span><span>=</span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#e06c75;">pady</span><span>=</span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#e06c75;">side</span><span>=</span><span style="color:#e06c75;">RIGHT</span><span>)
+</span><span>root.</span><span style="color:#e06c75;">mainloop</span><span>()
+</span></code></pre>
+<p>执行之后显示：<br />
+<img src="https://s1.ax1x.com/2020/10/31/BaVaoF.md.png" alt="BaVaoF.md.png" /></p>
+<h4 id="2-2-python-tkinter-wen-ben-kuang-entry">2.2 Python Tkinter 文本框（Entry）</h4>
+<ul>
+<li><strong>你如果需要输入多行文本，可以使用 Text 组件。</strong></li>
+<li><strong>你如果需要显示一行或多行文本且不允许用户修改，你可以使用 Label 组件。</strong></li>
+</ul>
+<pre data-lang="python" style="background-color:#282c34;color:#abb2bf;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#c678dd;">import </span><span>tkinter
+</span><span>
+</span><span>top = tkinter.</span><span style="color:#e06c75;">Tk</span><span>()
+</span><span>top.</span><span style="color:#e06c75;">title</span><span>(</span><span style="color:#98c379;">&quot;emergency system&quot;</span><span>)
+</span><span>
+</span><span>frame = tkinter.</span><span style="color:#e06c75;">Frame</span><span>(top, </span><span style="color:#e06c75;">bd</span><span>=</span><span style="color:#d19a66;">256</span><span>, </span><span style="color:#e06c75;">bg</span><span>=</span><span style="color:#98c379;">&quot;white&quot;</span><span>)
+</span><span>l1 = tkinter.</span><span style="color:#e06c75;">Label</span><span>(frame, </span><span style="color:#e06c75;">text</span><span>=</span><span style="color:#98c379;">&quot;name&quot;</span><span>)
+</span><span>w = tkinter.</span><span style="color:#e06c75;">Entry</span><span>(frame, </span><span style="color:#e06c75;">bd</span><span>=</span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#e06c75;">highlightcolor</span><span>=</span><span style="color:#98c379;">&quot;red&quot;</span><span>, </span><span style="color:#e06c75;">fg</span><span>=</span><span style="color:#98c379;">&quot;black&quot;</span><span>)
+</span><span>l1.</span><span style="color:#e06c75;">pack</span><span>(</span><span style="color:#e06c75;">side</span><span>=tkinter.</span><span style="color:#e06c75;">LEFT</span><span>)
+</span><span>w.</span><span style="color:#e06c75;">pack</span><span>(</span><span style="color:#e06c75;">side</span><span>=tkinter.</span><span style="color:#e06c75;">LEFT</span><span>)
+</span><span>frame.</span><span style="color:#e06c75;">pack</span><span>(</span><span style="color:#e06c75;">padx</span><span>=</span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#e06c75;">pady</span><span>=</span><span style="color:#d19a66;">10</span><span>)
+</span><span>
+</span><span>top.</span><span style="color:#e06c75;">mainloop</span><span>()
+</span></code></pre>
+<h3 id="3-liao-xue-feng-tu-xing-bian-cheng-ru-men">3. 廖雪峰图形编程入门</h3>
+<p>加入一个文本框，让用户可以输入文本，然后点按钮后，弹出消息对话框。</p>
+<pre data-lang="python" style="background-color:#282c34;color:#abb2bf;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#c678dd;">from </span><span>tkinter </span><span style="color:#c678dd;">import </span><span style="color:#d19a66;">*
+</span><span style="color:#c678dd;">import </span><span>tkinter.messagebox </span><span style="color:#c678dd;">as </span><span>messagebox
+</span><span>
+</span><span>
+</span><span style="color:#c678dd;">class </span><span style="color:#e5c07b;">Application</span><span>(</span><span style="color:#98c379;">Frame</span><span>):
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#56b6c2;">__init__</span><span>(</span><span style="color:#e06c75;">self</span><span>, </span><span style="color:#e06c75;">master</span><span>=</span><span style="color:#d19a66;">None</span><span>):
+</span><span>        Frame.</span><span style="color:#56b6c2;">__init__</span><span>(</span><span style="color:#e06c75;">self</span><span>, master, </span><span style="color:#e06c75;">bd</span><span>=</span><span style="color:#d19a66;">128</span><span>, </span><span style="color:#e06c75;">bg</span><span>=</span><span style="color:#98c379;">&quot;green&quot;</span><span>)
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.</span><span style="color:#e06c75;">pack</span><span>()
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.</span><span style="color:#e06c75;">createWidgets</span><span>()
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#61afef;">createWidgets</span><span>(</span><span style="color:#e06c75;">self</span><span>):
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.nameInput = </span><span style="color:#e06c75;">Entry</span><span>(</span><span style="color:#e06c75;">self</span><span>, </span><span style="color:#e06c75;">bd</span><span>=</span><span style="color:#d19a66;">12</span><span>, </span><span style="color:#e06c75;">bg</span><span>=</span><span style="color:#98c379;">&quot;white&quot;</span><span>)
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.nameInput.</span><span style="color:#e06c75;">pack</span><span>()
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.quitButton = </span><span style="color:#e06c75;">Button</span><span>(</span><span style="color:#e06c75;">self</span><span>, </span><span style="color:#e06c75;">text</span><span>=</span><span style="color:#98c379;">&#39;Quit&#39;</span><span>, </span><span style="color:#e06c75;">command</span><span>=</span><span style="color:#e06c75;">self</span><span>.quit)
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.helloButton = </span><span style="color:#e06c75;">Button</span><span>(</span><span style="color:#e06c75;">self</span><span>, </span><span style="color:#e06c75;">text</span><span>=</span><span style="color:#98c379;">&#39;hello&#39;</span><span>, </span><span style="color:#e06c75;">command</span><span>=</span><span style="color:#e06c75;">self</span><span>.hello)
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.helloButton.</span><span style="color:#e06c75;">pack</span><span>(</span><span style="color:#e06c75;">side</span><span>=</span><span style="color:#e06c75;">LEFT</span><span>, </span><span style="color:#e06c75;">padx</span><span>=</span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#e06c75;">pady</span><span>=</span><span style="color:#d19a66;">10</span><span>)
+</span><span>        </span><span style="color:#e06c75;">self</span><span>.quitButton.</span><span style="color:#e06c75;">pack</span><span>(</span><span style="color:#e06c75;">side</span><span>=</span><span style="color:#e06c75;">LEFT</span><span>, </span><span style="color:#e06c75;">padx</span><span>=</span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#e06c75;">pady</span><span>=</span><span style="color:#d19a66;">10</span><span>)
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">def </span><span style="color:#61afef;">hello</span><span>(</span><span style="color:#e06c75;">self</span><span>):
+</span><span>        name = </span><span style="color:#e06c75;">self</span><span>.nameInput.</span><span style="color:#e06c75;">get</span><span>()
+</span><span>        messagebox.</span><span style="color:#e06c75;">showinfo</span><span>(</span><span style="color:#98c379;">&quot;Message&quot;</span><span>, </span><span style="color:#98c379;">&quot;Hello </span><span style="color:#d19a66;">%s</span><span style="color:#98c379;">&quot; </span><span>% name)
+</span><span>
+</span><span>
+</span><span>app = </span><span style="color:#e06c75;">Application</span><span>()
+</span><span>app.master.</span><span style="color:#e06c75;">title</span><span>(</span><span style="color:#98c379;">&quot;Hello World!&quot;</span><span>)
+</span><span>app.</span><span style="color:#e06c75;">mainloop</span><span>()
+</span></code></pre>
+<p><img src="https://s1.ax1x.com/2020/10/31/BaYUw4.png" alt="32" /></p>
+<h3 id="4-can-kao-zi-liao">4. 参考资料</h3>
+<p><a href="https://blog.csdn.net/liuxu0703/article/details/54428405">[Tkinter 教程 12] 布局管理 (Pack Place Grid)</a><br />
+<a href="https://www.cnblogs.com/shwee/p/9427975.html">Python GUI 之 tkinter 窗口视窗教程大集合（看这篇就够了）</a></p>
+<h2 id="jiu-yuan-lei">九、元类</h2>
+<p><a href="https://www.liaoxuefeng.com/wiki/1016959663602400/1017592449371072">廖雪峰使用元类</a></p>
+<p><a href="https://www.cnblogs.com/ArsenalfanInECNU/p/9036407.html">谈谈 Python 中元类 Metaclass(一)：什么是元类</a></p>
+<p><a href="https://www.cnblogs.com/ArsenalfanInECNU/p/9100874.html">谈谈 Python 中元类 Metaclass(二)：ORM 实践</a></p>
+<p><a href="https://www.cnblogs.com/JetpropelledSnake/p/9094103.html">深入理解 Python 中的元类(metaclass)</a></p>
+</article>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/linux'>Linux</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/python3'>Python3</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2025
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    </body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | gRPC-Go 使用指南</title>
+<meta
+  property="og:title"
+  content="碎碎念 | gRPC-Go 使用指南"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/grpc-go-intro/" />
+<meta property="og:description" content="本文简述了 gRPC 的基本概念及 gRPC-Go 环境的搭建方法，并提供了 gRPC-Go 的示例程序，包括服务端与客户端的编写及测试步骤。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="gRPC-Go 使用指南" />
+<meta name="twitter:description" content="本文简述了 gRPC 的基本概念及 gRPC-Go 环境的搭建方法，并提供了 gRPC-Go 的示例程序，包括服务端与客户端的编写及测试步骤。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">04</span>
+        <span class="rest">Oct 21</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">gRPC-Go 使用指南 </h1>
+    </div>
+  </div>
+    
+  <article><h2 id="1-grpc-kuang-jia-yuan-li">1、gRPC 框架原理</h2>
+<p><img src="https://ifmagic.github.io/posts/grpc-go-intro/grpc.png" alt="gRPC" /></p>
+<p>RPC 框架通过隐藏底层的数据传输方式（TCP/UDP）、序列化方式（XML/JSON/二进制）和通信细节，<font color=red>使服务调用变得简单透明</font>。用户只需提供 IP 和端口，就能像调用本地接口一样方便地访问远程服务。使用体验显示，相比传统 HTTP 服务，这种方式更为便捷。而 gRPC 是一个高性能、开源的通用 RPC 框架，专为服务端和移动端设计，基于 HTTP/2。gRPC 特点如下：</p>
+<ul>
+<li>语言中立，支持多种语言；</li>
+<li>基于 IDL 文件定义服务，通过 proto3 工具生成指定语言的数据结构、服务端接口以及客户端 Stub；</li>
+<li>通信协议基于标准的 HTTP/2 设计，支持双向流、消息头压缩、单 TCP 的多路复用、服务端推送等特性，这些特性使得 gRPC 在移动端设备上更加省电和节省网络流量；</li>
+<li>序列化支持 PB（Protocol Buffer）和 JSON，PB 是一种语言无关的高性能序列化框架，基于 HTTP/2 + PB, 保障了 RPC 调用的高性能。</li>
+</ul>
+<h2 id="2-yi-lai-an-zhuang">2、依赖安装</h2>
+<ul>
+<li>安装 golang</li>
+</ul>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">wget</span><span> https://golang.org/dl/go1.17.linux-amd64.tar.gz
+</span><span style="color:#e06c75;">sha256sum</span><span> go1.17.linux-amd64.tar.gz
+</span><span style="color:#e06c75;">tar -C</span><span> /usr/local</span><span style="color:#e06c75;"> -xzf</span><span> go1.17.linux-amd64.tar.gz
+</span><span style="font-style:italic;color:#5c6370;"># 修改环境变量, 即在~/.bashrc文件末尾添加如下语句即可：
+</span><span style="color:#c678dd;">export </span><span style="color:#e06c75;">PATH</span><span>=</span><span style="color:#98c379;">$</span><span style="color:#e06c75;">PATH</span><span style="color:#98c379;">:/usr/local/go/bin
+</span><span style="color:#c678dd;">export </span><span style="color:#e06c75;">GO111MODULE</span><span>=</span><span style="color:#98c379;">on
+</span><span style="color:#c678dd;">export </span><span style="color:#e06c75;">GOPROXY</span><span>=</span><span style="color:#98c379;">https://mirrors.tencent.com/go/,goproxy.cn,direct
+</span><span style="color:#c678dd;">export </span><span style="color:#e06c75;">GOSUMDB</span><span>=</span><span style="color:#98c379;">off
+</span></code></pre>
+<ul>
+<li>安装 protoc(&gt;=3.0)</li>
+</ul>
+<p>直接在 GitHub Release 下载对应平台<a href="https://github.com/protocolbuffers/protobuf/releases/latest">最新版本的二进制文件</a>，下载完成后解压到指定目录，然后将 bin 目录添加到环境变量即可。</p>
+<ul>
+<li>安装 gprc protocol 插件</li>
+</ul>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">go</span><span> install google.golang.org/protobuf/cmd/protoc-gen-go@v1.26
+</span><span style="color:#e06c75;">go</span><span> install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1
+</span></code></pre>
+<ul>
+<li>配置环境变量</li>
+</ul>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#56b6c2;">echo </span><span style="color:#98c379;">&#39;export PATH=$PATH:$GOPATH/bin&#39; </span><span>&gt;&gt; </span><span style="color:#e06c75;">~</span><span>/.bashrc
+</span></code></pre>
+<h2 id="3-grpc-fu-wu-shi-li-cheng-xu">3、gRPC 服务示例程序</h2>
+<ul>
+<li>编写 pb 文件 helloworld.proto</li>
+</ul>
+<pre data-lang="proto" style="background-color:#282c34;color:#abb2bf;" class="language-proto "><code class="language-proto" data-lang="proto"><span style="color:#c678dd;">syntax </span><span>= </span><span style="color:#98c379;">&quot;proto3&quot;</span><span>;
+</span><span>
+</span><span style="color:#c678dd;">option </span><span style="color:#e06c75;">go_package </span><span>= </span><span style="color:#98c379;">&quot;github.com/botao/helloworld&quot;</span><span>;
+</span><span>
+</span><span style="color:#c678dd;">package </span><span>helloworld;
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// The greeting service definition.
+</span><span style="color:#c678dd;">service </span><span style="color:#e5c07b;">Greeter </span><span>{
+</span><span>  </span><span style="font-style:italic;color:#5c6370;">// Sends a greeting
+</span><span>  </span><span style="color:#c678dd;">rpc </span><span style="color:#61afef;">SayHello </span><span>(</span><span style="color:#e06c75;">HelloRequest</span><span>) </span><span style="color:#c678dd;">returns </span><span>(</span><span style="color:#e06c75;">HelloReply</span><span>) {}
+</span><span>
+</span><span>  </span><span style="color:#c678dd;">rpc </span><span style="color:#61afef;">SayHelloAgain </span><span>(</span><span style="color:#e06c75;">HelloRequest</span><span>) </span><span style="color:#c678dd;">returns </span><span>(</span><span style="color:#e06c75;">HelloReply</span><span>) {}
+</span><span>}
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// The request message containing the user&#39;s name.
+</span><span style="color:#c678dd;">message </span><span style="color:#e5c07b;">HelloRequest </span><span>{
+</span><span>  string </span><span style="color:#e06c75;">name </span><span>= </span><span style="color:#d19a66;">1</span><span>;
+</span><span>}
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// The response message containing the greetings
+</span><span style="color:#c678dd;">message </span><span style="color:#e5c07b;">HelloReply </span><span>{
+</span><span>  string </span><span style="color:#e06c75;">message </span><span>= </span><span style="color:#d19a66;">1</span><span>;
+</span><span>}
+</span></code></pre>
+<ul>
+<li>编写自动生成框架代码脚本</li>
+</ul>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="font-style:italic;color:#5c6370;">#!/bin/bash
+</span><span style="color:#56b6c2;">cd </span><span>$(</span><span style="color:#e06c75;">dirname </span><span>$</span><span style="color:#e06c75;">0</span><span>) || </span><span style="color:#56b6c2;">exit</span><span> 1
+</span><span style="color:#e06c75;">mkdir -p</span><span> v1
+</span><span>
+</span><span style="color:#e06c75;">protoc --go_out</span><span> ./v1</span><span style="color:#e06c75;"> --go_opt</span><span> paths=source_relative \
+</span><span style="color:#e06c75;">       --go-grpc_out</span><span> ./v1</span><span style="color:#e06c75;"> --go-grpc_opt</span><span> paths=source_relative helloworld.proto
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;"># 当要使用grpc-gateway特性时可采取下列模版生成代码
+</span><span style="font-style:italic;color:#5c6370;"># 替换成对应的目录，对应内容：https://github.com/googleapis/googleapis，https://github.com/protocolbuffers/protobuf
+</span><span style="font-style:italic;color:#5c6370;"># PB_INCLUDE=&quot;-I/root/go/src/github.com/googleapis/ -I/root/go/src/github.com/protocolbuffers/protobuf/src&quot;
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;"># protoc -I . $PB_INCLUDE \
+</span><span style="font-style:italic;color:#5c6370;">#     --go_out ./v1 --go_opt paths=source_relative \
+</span><span style="font-style:italic;color:#5c6370;">#     --go-grpc_out ./v1 --go-grpc_opt paths=source_relative helloworld.proto
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;"># 当要使用grpc-gateway特性时使用
+</span><span style="font-style:italic;color:#5c6370;"># protoc -I . $PB_INCLUDE \
+</span><span style="font-style:italic;color:#5c6370;">#     --grpc-gateway_out ./v1 \
+</span><span style="font-style:italic;color:#5c6370;">#     --grpc-gateway_opt logtostderr=true \
+</span><span style="font-style:italic;color:#5c6370;">#     --grpc-gateway_opt paths=source_relative \
+</span><span style="font-style:italic;color:#5c6370;">#     --grpc-gateway_opt generate_unbound_methods=true helloworld.proto
+</span></code></pre>
+<ul>
+<li>编写服务端代码</li>
+</ul>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="color:#c678dd;">package </span><span style="color:#e06c75;">main
+</span><span>
+</span><span style="color:#c678dd;">import </span><span>(
+</span><span>	</span><span style="color:#98c379;">&quot;context&quot;
+</span><span>	</span><span style="color:#98c379;">&quot;log&quot;
+</span><span>	</span><span style="color:#98c379;">&quot;net&quot;
+</span><span>
+</span><span>	</span><span style="color:#e06c75;">pb </span><span style="color:#98c379;">&quot;github.com/botao/helloworld/proto/v1&quot;
+</span><span>	</span><span style="color:#98c379;">&quot;google.golang.org/grpc&quot;
+</span><span>)
+</span><span>
+</span><span style="color:#c678dd;">const </span><span>(
+</span><span>	</span><span style="color:#e06c75;">port </span><span>= </span><span style="color:#98c379;">&quot;:50051&quot;
+</span><span>)
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// server is used to implement helloworld.GreeterServer.
+</span><span style="color:#c678dd;">type </span><span>server </span><span style="color:#c678dd;">struct </span><span>{
+</span><span>	</span><span style="color:#e06c75;">pb</span><span>.</span><span style="color:#98c379;">UnimplementedGreeterServer
+</span><span>}
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// SayHello implements helloworld.GreeterServer
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">s </span><span>*</span><span style="color:#c678dd;">server</span><span>) </span><span style="color:#61afef;">SayHello</span><span>(</span><span style="color:#e06c75;">ctx context</span><span>.</span><span style="color:#c678dd;">Context</span><span>, </span><span style="color:#e06c75;">in </span><span>*</span><span style="color:#e06c75;">pb</span><span>.</span><span style="color:#c678dd;">HelloRequest</span><span>) (*</span><span style="color:#e06c75;">pb</span><span>.</span><span style="color:#c678dd;">HelloReply</span><span>, </span><span style="color:#c678dd;">error</span><span>) {
+</span><span>	</span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Printf</span><span>(</span><span style="color:#98c379;">&quot;Received: </span><span style="color:#d19a66;">%v</span><span style="color:#98c379;">&quot;</span><span>, </span><span style="color:#e06c75;">in</span><span>.</span><span style="color:#e06c75;">GetName</span><span>())
+</span><span>	</span><span style="color:#c678dd;">return </span><span>&amp;</span><span style="color:#e06c75;">pb</span><span>.</span><span style="color:#e06c75;">HelloReply</span><span>{</span><span style="color:#e06c75;">Message</span><span>: </span><span style="color:#98c379;">&quot;Hello &quot; </span><span>+ </span><span style="color:#e06c75;">in</span><span>.</span><span style="color:#e06c75;">GetName</span><span>()}, </span><span style="color:#d19a66;">nil
+</span><span>}
+</span><span>
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">s </span><span>*</span><span style="color:#c678dd;">server</span><span>) </span><span style="color:#61afef;">SayHelloAgain</span><span>(</span><span style="color:#e06c75;">ctx context</span><span>.</span><span style="color:#c678dd;">Context</span><span>, </span><span style="color:#e06c75;">in </span><span>*</span><span style="color:#e06c75;">pb</span><span>.</span><span style="color:#c678dd;">HelloRequest</span><span>) (*</span><span style="color:#e06c75;">pb</span><span>.</span><span style="color:#c678dd;">HelloReply</span><span>, </span><span style="color:#c678dd;">error</span><span>) {
+</span><span>	</span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Printf</span><span>(</span><span style="color:#98c379;">&quot;Received: </span><span style="color:#d19a66;">%v</span><span style="color:#98c379;">&quot;</span><span>, </span><span style="color:#e06c75;">in</span><span>.</span><span style="color:#e06c75;">GetName</span><span>())
+</span><span>	</span><span style="color:#c678dd;">return </span><span>&amp;</span><span style="color:#e06c75;">pb</span><span>.</span><span style="color:#e06c75;">HelloReply</span><span>{</span><span style="color:#e06c75;">Message</span><span>: </span><span style="color:#98c379;">&quot;Hello again&quot; </span><span>+ </span><span style="color:#e06c75;">in</span><span>.</span><span style="color:#e06c75;">GetName</span><span>()}, </span><span style="color:#d19a66;">nil
+</span><span>}
+</span><span>
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">main</span><span>() {
+</span><span>	</span><span style="color:#e06c75;">lis</span><span>, </span><span style="color:#e06c75;">err </span><span>:= </span><span style="color:#e06c75;">net</span><span>.</span><span style="color:#e06c75;">Listen</span><span>(</span><span style="color:#98c379;">&quot;tcp&quot;</span><span>, </span><span style="color:#e06c75;">port</span><span>)
+</span><span>	</span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">err </span><span>!= </span><span style="color:#d19a66;">nil </span><span>{
+</span><span>		</span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Fatalf</span><span>(</span><span style="color:#98c379;">&quot;failed to listen: </span><span style="color:#d19a66;">%v</span><span style="color:#98c379;">&quot;</span><span>, </span><span style="color:#e06c75;">err</span><span>)
+</span><span>	}
+</span><span>	</span><span style="color:#e06c75;">s </span><span>:= </span><span style="color:#e06c75;">grpc</span><span>.</span><span style="color:#e06c75;">NewServer</span><span>()
+</span><span>	</span><span style="color:#e06c75;">pb</span><span>.</span><span style="color:#e06c75;">RegisterGreeterServer</span><span>(</span><span style="color:#e06c75;">s</span><span>, &amp;</span><span style="color:#e06c75;">server</span><span>{})
+</span><span>	</span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Printf</span><span>(</span><span style="color:#98c379;">&quot;server listening at </span><span style="color:#d19a66;">%v</span><span style="color:#98c379;">&quot;</span><span>, </span><span style="color:#e06c75;">lis</span><span>.</span><span style="color:#e06c75;">Addr</span><span>())
+</span><span>	</span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">err </span><span>:= </span><span style="color:#e06c75;">s</span><span>.</span><span style="color:#e06c75;">Serve</span><span>(</span><span style="color:#e06c75;">lis</span><span>); </span><span style="color:#e06c75;">err </span><span>!= </span><span style="color:#d19a66;">nil </span><span>{
+</span><span>		</span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Fatalf</span><span>(</span><span style="color:#98c379;">&quot;failed to serve: </span><span style="color:#d19a66;">%v</span><span style="color:#98c379;">&quot;</span><span>, </span><span style="color:#e06c75;">err</span><span>)
+</span><span>	}
+</span><span>}
+</span></code></pre>
+<ul>
+<li>编写客户端代码</li>
+</ul>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="color:#c678dd;">package </span><span style="color:#e06c75;">main
+</span><span>
+</span><span style="color:#c678dd;">import </span><span>(
+</span><span>    </span><span style="color:#98c379;">&quot;context&quot;
+</span><span>    </span><span style="color:#98c379;">&quot;log&quot;
+</span><span>    </span><span style="color:#98c379;">&quot;os&quot;
+</span><span>    </span><span style="color:#98c379;">&quot;time&quot;
+</span><span>
+</span><span>    </span><span style="color:#98c379;">&quot;google.golang.org/grpc&quot;
+</span><span>    </span><span style="color:#e06c75;">pb </span><span style="color:#98c379;">&quot;github.com/botao/helloworld/proto/v1&quot;
+</span><span>)
+</span><span>
+</span><span style="color:#c678dd;">const </span><span>(
+</span><span>    </span><span style="color:#e06c75;">address     </span><span>= </span><span style="color:#98c379;">&quot;localhost:50051&quot;
+</span><span>    </span><span style="color:#e06c75;">defaultName </span><span>= </span><span style="color:#98c379;">&quot;world&quot;
+</span><span>)
+</span><span>
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">main</span><span>() {
+</span><span>    </span><span style="font-style:italic;color:#5c6370;">// Set up a connection to the server.
+</span><span>    </span><span style="color:#e06c75;">conn</span><span>, </span><span style="color:#e06c75;">err </span><span>:= </span><span style="color:#e06c75;">grpc</span><span>.</span><span style="color:#e06c75;">Dial</span><span>(</span><span style="color:#e06c75;">address</span><span>, </span><span style="color:#e06c75;">grpc</span><span>.</span><span style="color:#e06c75;">WithInsecure</span><span>(), </span><span style="color:#e06c75;">grpc</span><span>.</span><span style="color:#e06c75;">WithBlock</span><span>())
+</span><span>    </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">err </span><span>!= </span><span style="color:#d19a66;">nil </span><span>{
+</span><span>        </span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Fatalf</span><span>(</span><span style="color:#98c379;">&quot;did not connect: </span><span style="color:#d19a66;">%v</span><span style="color:#98c379;">&quot;</span><span>, </span><span style="color:#e06c75;">err</span><span>)
+</span><span>    }
+</span><span>    </span><span style="color:#c678dd;">defer </span><span style="color:#e06c75;">conn</span><span>.</span><span style="color:#e06c75;">Close</span><span>()
+</span><span>    </span><span style="color:#e06c75;">c </span><span>:= </span><span style="color:#e06c75;">pb</span><span>.</span><span style="color:#e06c75;">NewGreeterClient</span><span>(</span><span style="color:#e06c75;">conn</span><span>)
+</span><span>
+</span><span>    </span><span style="font-style:italic;color:#5c6370;">// Contact the server and print out its response.
+</span><span>    </span><span style="color:#e06c75;">name </span><span>:= </span><span style="color:#e06c75;">defaultName
+</span><span>    </span><span style="color:#c678dd;">if </span><span style="color:#56b6c2;">len</span><span>(</span><span style="color:#e06c75;">os</span><span>.</span><span style="color:#e06c75;">Args</span><span>) &gt; </span><span style="color:#d19a66;">1 </span><span>{
+</span><span>        </span><span style="color:#e06c75;">name </span><span>= </span><span style="color:#e06c75;">os</span><span>.</span><span style="color:#e06c75;">Args</span><span>[</span><span style="color:#d19a66;">1</span><span>]
+</span><span>    }
+</span><span>    </span><span style="color:#e06c75;">ctx</span><span>, </span><span style="color:#e06c75;">cancel </span><span>:= </span><span style="color:#e06c75;">context</span><span>.</span><span style="color:#e06c75;">WithTimeout</span><span>(</span><span style="color:#e06c75;">context</span><span>.</span><span style="color:#e06c75;">Background</span><span>(), </span><span style="color:#e06c75;">time</span><span>.</span><span style="color:#e06c75;">Second</span><span>)
+</span><span>    </span><span style="color:#c678dd;">defer </span><span style="color:#e06c75;">cancel</span><span>()
+</span><span>    </span><span style="color:#e06c75;">r</span><span>, </span><span style="color:#e06c75;">err </span><span>:= </span><span style="color:#e06c75;">c</span><span>.</span><span style="color:#e06c75;">SayHello</span><span>(</span><span style="color:#e06c75;">ctx</span><span>, &amp;</span><span style="color:#e06c75;">amp</span><span>;</span><span style="color:#e06c75;">pb</span><span>.</span><span style="color:#e06c75;">HelloRequest</span><span>{</span><span style="color:#e06c75;">Name</span><span>: </span><span style="color:#e06c75;">name</span><span>})
+</span><span>    </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">err </span><span>!= </span><span style="color:#d19a66;">nil </span><span>{
+</span><span>        </span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Fatalf</span><span>(</span><span style="color:#98c379;">&quot;could not greet: </span><span style="color:#d19a66;">%v</span><span style="color:#98c379;">&quot;</span><span>, </span><span style="color:#e06c75;">err</span><span>)
+</span><span>    }
+</span><span>    </span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Printf</span><span>(</span><span style="color:#98c379;">&quot;Greeting: </span><span style="color:#d19a66;">%s</span><span style="color:#98c379;">&quot;</span><span>, </span><span style="color:#e06c75;">r</span><span>.</span><span style="color:#e06c75;">GetMessage</span><span>())
+</span><span>
+</span><span>    </span><span style="color:#e06c75;">r</span><span>, </span><span style="color:#e06c75;">err </span><span>= </span><span style="color:#e06c75;">c</span><span>.</span><span style="color:#e06c75;">SayHelloAgain</span><span>(</span><span style="color:#e06c75;">ctx</span><span>, &amp;</span><span style="color:#e06c75;">amp</span><span>;</span><span style="color:#e06c75;">pb</span><span>.</span><span style="color:#e06c75;">HelloRequest</span><span>{</span><span style="color:#e06c75;">Name</span><span>: </span><span style="color:#e06c75;">name</span><span>})
+</span><span>    </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">err </span><span>!= </span><span style="color:#d19a66;">nil </span><span>{
+</span><span>        </span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Fatalf</span><span>(</span><span style="color:#98c379;">&quot;could not greet: </span><span style="color:#d19a66;">%v</span><span style="color:#98c379;">&quot;</span><span>, </span><span style="color:#e06c75;">err</span><span>)
+</span><span>    }
+</span><span>    </span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Printf</span><span>(</span><span style="color:#98c379;">&quot;Greeting: </span><span style="color:#d19a66;">%s</span><span style="color:#98c379;">&quot;</span><span>, </span><span style="color:#e06c75;">r</span><span>.</span><span style="color:#e06c75;">GetMessage</span><span>())
+</span><span>}
+</span></code></pre>
+<ul>
+<li>执行测试
+<img src="https://ifmagic.github.io/posts/grpc-go-intro/grpc_test.png" alt="grpc-test" /></li>
+<li>代码结构
+<img src="https://ifmagic.github.io/posts/grpc-go-intro/struct.png" alt="struct" /></li>
+</ul>
+</article>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/grpc'>gRPC</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/golang'>Golang</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2025
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    </body>
+</html>

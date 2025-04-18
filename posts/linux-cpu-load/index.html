@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | Understanding Linux CPU Load - when should you be worried?</title>
+<meta
+  property="og:title"
+  content="碎碎念 | Understanding Linux CPU Load - when should you be worried?"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/linux-cpu-load/" />
+<meta property="og:description" content="本文是一篇英文文章的翻译，内容涉及理解 Linux CPU 负载的含义，以及何时应对此担忧。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Understanding Linux CPU Load - when should you be worried?" />
+<meta name="twitter:description" content="本文是一篇英文文章的翻译，内容涉及理解 Linux CPU 负载的含义，以及何时应对此担忧。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">20</span>
+        <span class="rest">Nov 24</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">Understanding Linux CPU Load - when should you be worried? </h1>
+    </div>
+  </div>
+    
+  <article><blockquote>
+<p>原文：<a href="https://scoutapm.com/blog/understanding-load-averages">Understanding Linux CPU Load - when should you be worried?</a></p>
+</blockquote>
+<h2 id="1-bei-jing">1. 背景</h2>
+<p>你可能已经熟悉 Linux 的负载平均值，负载平均值是通过 <code>uptime</code> 和 <code>top</code> 命令显示的三个数字，它们看起来像这样：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">Load</span><span> Avg: 1.91, 1.96, 2.15
+</span></code></pre>
+<p>大多数人大概知道负载平均值的含义：这三个数字分别代表不同时间段（1 分钟、5 分钟和 15 分钟）的平均值，数值越低越好，较高的数值表示问题或机器过载。但“好”和“坏”的负载平均值的阈值是多少？何时应关注负载平均值，以及何时触发告警通知以便于维护系统？</p>
+<p>首先，简单介绍一下负载平均值的含义。我们从最简单的情况开始：一台只有一个单核处理器的机器。</p>
+<p><strong>以交通流量为例类比</strong></p>
+<p>单核 CPU 就像一条单车道。想象你是桥梁操作员……有时你的桥梁非常繁忙，车辆排队等待通过。你想让人们知道桥梁上的交通状况。一个不错的指标是特定时间有多少车辆在等待。如果没有车辆等待，即将到来的司机知道他们可以立即通过。如果车辆排起长队，司机就知道他们会遇到延误。<br />
+那么，桥梁操作员，你会使用什么编号系统？比如：</p>
+<ul>
+<li><strong>0.00 表示桥上完全没有交通。</strong> 实际上，0.00 到 1.00 之间意味着没有拥堵，即将到来的车辆可以直接通过。</li>
+<li><strong>1.00 表示桥梁正好达到容量。</strong> 一切仍然良好，但如果交通稍微加重，情况将会变慢。</li>
+<li><strong>超过 1.00 表示有拥堵。</strong> 2.00 意味着总共有两车道的车辆——一车道在桥上，一车道在等待。3.00 意味着总共有三车道的车辆——一车道在桥上，两车道在等待。以此类推。</li>
+</ul>
+<p>这基本上就是 CPU 负载的含义。“车辆”则是使用 CPU 时间片（“过桥”）或排队等待使用 CPU 的进程。Unix 把<strong>当前正在运行的进程数加上等待（排队）运行的进程数之和</strong>称之为运行队列长度。</p>
+<p>像桥梁操作员一样，你希望你的车辆/进程永远不需要等待。因此，你的 CPU 负载理想情况下应保持在 1.00 以下。如果偶尔超过 1.00，你还可以接受，但如果持续超过 1.00，你就需要担心了。</p>
+<h2 id="2-li-xiang-de-fu-zai-shi-1-00-ma">2. 理想的负载是 1.00 吗？</h2>
+<p>不完全是这样，针对单核 CPU，1.00 的负载问题在于没有太多的余量来应对突发情况，实际上，在一般情况下许多系统管理员会将 0.70 设置为理想负载的一个阈值，并总结有以下几个经验：</p>
+<ul>
+<li><strong>“需要关注”</strong>：如果你的负载平均值持续高于 0.70，是时候调查了，以免情况恶化。</li>
+<li><strong>“立即修复”</strong>：如果你的负载平均值持续高于 1.00，立即找到问题并修复。否则，你会在半夜被叫醒，那可不好玩。</li>
+<li><strong>“Arrgh, it's 3 AM WTF”</strong>：如果你的负载平均值高于 5.00，你可能有大麻烦了，你的机器要么挂了，要么慢得要命，而且这种情况（莫名其妙地）会在最糟糕的时间发生，比如半夜或你在会议上演讲时。别让它发展到那一步。</li>
+</ul>
+<h2 id="3-duo-chu-li-qi-ni-wo-de-fu-zai-xian-shi-3-00-dan-yi-qie-yun-xing-zheng-chang">3. 多处理器呢？我的负载显示 3.00，但一切运行正常！</h2>
+<p>如果是四核处理器系统，那么负载 3.00 时，系统仍然健康。</p>
+<p>在多处理器系统中，负载是相对于可用处理器核心数的。“100%利用率”在单核系统上是 1.00，双核系统上是 2.00，四核系统上是 4.00，以此类推。</p>
+<p>回到桥梁类比，“1.00”实际上意味着“一条车道的交通量”。在单车道桥上，这意味着它满了。在双车道桥上，负载 1.00 意味着它处于 50%容量——只有一条车道满了，所以还有另一条车道可以填充。</p>
+<p>CPU 也是一样：负载 1.00 在单核机器上是 100% CPU 利用率。在双核机器上，负载 2.00 是 100% CPU 利用率。</p>
+<h2 id="4-duo-he-vs-duo-chu-li-qi">4. 多核 vs. 多处理器</h2>
+<p>既然我们谈到了这个话题，我们来聊聊多核和多处理器的区别。从性能角度来看，一台单个双核处理器的机器是否基本上等同于两台各有一个核心的处理器机器？是的，大致如此。这里有很多细微差别，比如缓存大小、处理器间进程切换频率等。尽管有这些细节，但对于评估 CPU 负载值的目的来说，重要的是总核心数，而不是这些核心分布在多少个物理处理器上。</p>
+<p>这引出了两个新的经验法则：</p>
+<ul>
+<li><strong>“核心数 = 最大负载”</strong>：在多核系统上，你的负载不应超过可用核心数。</li>
+<li><strong>“核心就是核心”</strong>：核心如何分布在 CPU 上并不重要。两个四核 == 四个双核 == 八个单核。从这些目的来看，都是八个核心。</li>
+</ul>
+<h2 id="5-zong-jie">5. 总结</h2>
+<p>对于 macos 可以使用如下命令查询 cpu 信息，我的机器信息如下所示：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">❯</span><span> system_profiler SPHardwareDataType
+</span><span style="color:#e06c75;">Hardware:
+</span><span>    </span><span style="color:#e06c75;">Model</span><span> Name: MacBook Pro
+</span><span>    </span><span style="color:#e06c75;">Model</span><span> Identifier: Mac14,9
+</span><span>    </span><span style="color:#e06c75;">Model</span><span> Number: Z17K0009KCH/A
+</span><span>    </span><span style="color:#e06c75;">Chip:</span><span> Apple M2 Pro
+</span><span>    </span><span style="color:#e06c75;">Total</span><span> Number of Cores: 12 (8 performance and 4 efficiency)
+</span><span>    </span><span style="color:#e06c75;">Memory:</span><span> 32 GB
+</span></code></pre>
+<p>让我们看看此时 uptime 命令输出的负载平均值：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">❯</span><span> uptime
+</span><span style="color:#e06c75;">14:12</span><span>  up 100 days, 18:24, 1 user, load averages: 2.59 1.75 1.56
+</span></code></pre>
+<p>其中 2.59 是过去一分钟的平均值，1.75 是过去五分钟的平均值，1.56 是过去 15 分钟的平均值。这是在我 12 核 CPU 的机器上，显然我还有很多的余量，所以在负载持续超过 11 之前，我丝毫不担心。但我应该观察哪个平均值，一分钟、五分钟还是十五分钟？</p>
+<p>结论就是<font color=red>应该关注五分钟或十五分钟的平均值。</font>坦白说，如果你的机器在一分钟平均值上超过 1.0（CPU 核心数），你仍然没事。当十五分钟平均值超过 1.0（CPU 核心数） 并持续时，你就需要立即行动了。</p>
+<h2 id="6-tuo-zhan-yue-du">6. 拓展阅读</h2>
+<p><a href="https://www.zhihu.com/question/336683528/answer/3218878435">Java 中线程池的线程数量如何确定？</a></p>
+<blockquote>
+<p>TL;DR：没有固定答案，先设定预期，比如我期望的 CPU 利用率在多少，负载在多少，GC 频率多少之类的指标后，再通过测试不断的调整到一个合理的线程数。</p>
+</blockquote>
+<p>但是在实践中，询问者往往需要的是一个相对固定的答案，此时我们可以根据任务类型是 CPU 密集型任务还是 IO 密集型任务来设定线程数（其中 N 为 CPU 的个数）：</p>
+<ul>
+<li>如果是 CPU 密集型应用，则线程池大小可以设置为 N+1</li>
+<li>如果是 IO 密集型应用，则线程池大小可以设置为 2N+1</li>
+</ul>
+<p>这个公式在一台服务器上只部署这一个应用并且只有这一个线程池时或许才合理，这也是为什么前面说没有固定答案的原因。但是，IO 优化中，这样的估算公式可能更适合：</p>
+<p><code>最佳线程数目 = （（线程等待时间+线程CPU时间）/ 线程CPU时间）* CPU核心数</code></p>
+</article>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/linux'>Linux</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/cpu'>CPU</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2025
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    </body>
+</html>

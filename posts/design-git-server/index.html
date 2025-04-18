@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | 如何设计Git服务器（小丑的看法）</title>
+<meta
+  property="og:title"
+  content="碎碎念 | 如何设计Git服务器（小丑的看法）"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/design-git-server/" />
+<meta property="og:description" content="在传统的 git 后端服务中，首要面对的挑战就是存储容量上限问题和用户并发访问高负载问题。本文简要概述 git 后端服务的架构，以及一些有用的文章。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="如何设计Git服务器（小丑的看法）" />
+<meta name="twitter:description" content="在传统的 git 后端服务中，首要面对的挑战就是存储容量上限问题和用户并发访问高负载问题。本文简要概述 git 后端服务的架构，以及一些有用的文章。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">12</span>
+        <span class="rest">Jul 22</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">如何设计Git服务器（小丑的看法） </h1>
+    </div>
+  </div>
+    
+  <article><p>在传统的 git 后端服务中，首要面对的挑战就是存储容量上限问题和用户并发访问高负载问题。本文简要概述 git 后端服务的架构，以及一些有用的文章。</p>
+<h3 id="1-dan-ji-leng-bei-mo-shi">1. 单机+冷备模式</h3>
+<p>gitlab 社区版提供了单机版，可以通过配置 git hooks 触发同步任务，将数据保存备份到备机。<br />
+存在的问题是同步任务经常出现卡住，同步失败，对象缺失等问题，备机无法保证实时最新，也无法保证数据完整性，备机不能开启读服务。</p>
+<h3 id="2-dan-ji-fen-bu-shi-cun-chu">2. 单机+分布式存储</h3>
+<p>该场景希望使用分布式存储解决存储容量上限问题的问题，这样存储可以无限扩展，具体如下所示：</p>
+<p><a href="https://imgse.com/i/xxrylD"><img src="https://s1.ax1x.com/2022/11/08/xxrylD.png" alt="xxrylD.png" /></a></p>
+<p>通过上图可以看见只使用了一个应用集群操作分布式文件系统，试想一下若新建多个应用集群，然后使用类似 dns 轮询分发请求的方式是否可以降低用户高并发访问时的负载？<br />
+答案是否定的，Gitee 曾在该架构下发生过<a href="https://zhuanlan.zhihu.com/p/362855087">事故</a>，主要原因是分布式存储系统并不适合用在 Git 这种海量小文件的场景下，因为 Git 每一次的操作都需要遍历大量的引用和对象，导致每一次操作整体耗时非常多。</p>
+<h3 id="3-shu-ju-fen-pian-zhu-bei-mo-shi">3. 数据分片 + 主备模式</h3>
+<h4 id="3-1-zhi-fen-pian">3.1 只分片</h4>
+<p><a href="https://imgse.com/i/xxsSpT"><img src="https://s1.ax1x.com/2022/11/08/xxsSpT.png" alt="xxsSpT.png" /></a></p>
+<p>上图为数据分片模式下的架构模型，其中集群内的 slave 由于仅仅是在主机写入完成后才会发起 hook 消息到从机(slave)，然后 slave 复制 master 数据到 slave。显然 slave 的同步可能会失败或缺失、不完整，所以该模式下所有的读写请求都是 master 来处理。<br />
+在这种模式下一个集群只有一台主机提供服务，由于网络带宽和机器资源的限制，当集群的访问超出 master 最大 qps 时, 服务器就会出现不稳定的状况。当前 coding-git 就是运行在这种模式之下的，所以运行效率差强人意。</p>
+<h4 id="3-2-fen-pian-du-xie-fen-chi">3.2 分片+读写分离</h4>
+<p>该点其实就是在 2.2.1 的基础上考虑，如何判定 master 和 slave 的仓库对等？也就是读到备机的数据是最新的，且完整的？最简单的一个步骤如下所示：</p>
+<ol>
+<li>由 master 节点，进行写操作，结束后计算并更新当前的 depot 的 hash 值;</li>
+<li>通过 git hook 向 slave 发起同步任务;</li>
+<li>slave 同步完 master 最新数据之后，计算并更新当前 depot 的 hash 值;</li>
+<li>当新的读请求过来时，先查看是否有跟 master 的 depot hash 值相同的 slave，如果有，再根据负载均衡算法选择一台 slave，提供读服务。</li>
+</ol>
+<h4 id="3-3-cun-zai-de-wen-ti">3.3 存在的问题</h4>
+<p>当某个分片的 master 节点发生异常（服务 crash 或服务器宕机等），会导致整个分片无法正常提供服务，下面是几点可能会产生的问题，摘自<a href="https://developer.aliyun.com/article/786954">阿里巴巴代码平台架构的演进之路</a>：</p>
+<ol>
+<li>可用性： 由于读写操作是分离的，所以在写服务器故障期间，服务的写功能是无法使用的； 对于单片而言，写操作是单点的，一台服务波动则整个分片都波动。</li>
+<li>性能：主备机器在同步上需要额外的时间开销。对于松散文件、文件压缩的 Git 仓库，这个耗时比单文件拷贝耗时更久。</li>
+<li>安全： 用户侧的短时间内的瞬时操作，对于节点同步来说可能是并发的，无法保证同步中的事务顺序。</li>
+<li>成本：同分片写，主备机器要求规格完全一致，但由于接收的请求不同，存在严重的资源消耗不均；当同步的小文件多时，对延时敏感。</li>
+</ol>
+<h3 id="4-duo-du-duo-xie">4. 多读多写</h3>
+<p>该节是阿里代码平台的一个实现方案，具体特征有：多写（写时复制）、无状态服务、快速校验仓库一致性。</p>
+<p><a href="https://imgse.com/i/xxrL0s"><img src="https://s1.ax1x.com/2022/11/08/xxrL0s.png" alt="xxrL0s.png" /></a></p>
+<h3 id="can-kao-wen-zhang">参考文章</h3>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/55964292">一篇文章讲透分布式存储</a></li>
+<li><a href="https://www.zhihu.com/column/c_1350116235108196352">硬核聊 Git 系列文章</a></li>
+<li><a href="https://developer.aliyun.com/article/786954">阿里巴巴代码平台架构的演进之路</a></li>
+<li><a href="http://kaito-kidd.com/2021/10/15/what-is-the-multi-site-high-availability-design/">搞懂异地多活，看这篇就够了</a></li>
+<li><a href="https://bbs.huaweicloud.com/blogs/333158">16 张图解｜一致性哈希算法</a></li>
+</ul>
+</article>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/git'>Git</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/distributed'>Distributed</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/fool'>Fool</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2025
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    </body>
+</html>

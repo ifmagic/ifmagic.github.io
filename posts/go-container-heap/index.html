@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | container&#x2F;heap包使用指南</title>
+<meta
+  property="og:title"
+  content="碎碎念 | container&#x2F;heap包使用指南"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/go-container-heap/" />
+<meta property="og:description" content="本文基于官方文档介绍 golang 标准库中提供的堆&#x2F;优先队列的使用方法。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="container&#x2F;heap包使用指南" />
+<meta name="twitter:description" content="本文基于官方文档介绍 golang 标准库中提供的堆&#x2F;优先队列的使用方法。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">28</span>
+        <span class="rest">Jun 22</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">container&#x2F;heap包使用指南 </h1>
+    </div>
+  </div>
+    
+  <article><p><strong>1、概述</strong></p>
+<p>"container/heap" 包提供了实现堆操作的接口，用户只需要定义满足 <code>heap.Interface</code> 接口的类型，就可以通过包提供的函数，像操作大根堆或小根堆一样，对实例数组变量进行 <code>Push</code> 和 <code>Pop</code> 操作。<br />
+堆通常是一个可以被看做一棵树的数组对象，堆总是满足下列性质：</p>
+<ul>
+<li>堆中某个结点的值总是不大于或不小于其父结点的值；</li>
+<li>堆总是一棵完全二叉树。</li>
+</ul>
+<p>堆的定义如下：n 个元素的序列 <code>{k1,k2,ki,…,kn}</code> 当且仅当满足下关系时，称之为堆：</p>
+<p><a href="https://imgse.com/i/xxrlF0"><img src="https://s1.ax1x.com/2022/11/08/xxrlF0.png" alt="xxrlF0.png" /></a></p>
+<p>下面将基于具体实例介绍"container/heap" 包的使用。</p>
+<p><strong>2、整数堆</strong></p>
+<p>下面的代码实现了一个整数类型的最小堆：</p>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="color:#c678dd;">package </span><span style="color:#e06c75;">main
+</span><span>
+</span><span style="color:#c678dd;">import </span><span>(
+</span><span>    </span><span style="color:#98c379;">&quot;container/heap&quot;
+</span><span>    </span><span style="color:#98c379;">&quot;log&quot;
+</span><span>)
+</span><span>
+</span><span style="color:#c678dd;">type </span><span>IntHeap []</span><span style="color:#c678dd;">int
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// 下面几个函数必须实现，heap包会进行回调
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">h </span><span style="color:#c678dd;">IntHeap</span><span>) </span><span style="color:#61afef;">Len</span><span>() </span><span style="color:#c678dd;">int </span><span>{ </span><span style="color:#c678dd;">return </span><span style="color:#56b6c2;">len</span><span>(</span><span style="color:#e06c75;">h</span><span>) }
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// Less函数的实现决定最终实现是最大堆还是最小堆
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">h </span><span style="color:#c678dd;">IntHeap</span><span>) </span><span style="color:#61afef;">Less</span><span>(</span><span style="color:#e06c75;">i</span><span>, </span><span style="color:#e06c75;">j </span><span style="color:#c678dd;">int</span><span>) </span><span style="color:#c678dd;">bool </span><span>{ </span><span style="color:#c678dd;">return </span><span style="color:#e06c75;">h</span><span>[</span><span style="color:#e06c75;">i</span><span>] &lt; </span><span style="color:#e06c75;">h</span><span>[</span><span style="color:#e06c75;">j</span><span>] }
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">h </span><span style="color:#c678dd;">IntHeap</span><span>) </span><span style="color:#61afef;">Swap</span><span>(</span><span style="color:#e06c75;">i</span><span>, </span><span style="color:#e06c75;">j </span><span style="color:#c678dd;">int</span><span>)      { </span><span style="color:#e06c75;">h</span><span>[</span><span style="color:#e06c75;">i</span><span>], </span><span style="color:#e06c75;">h</span><span>[</span><span style="color:#e06c75;">j</span><span>] = </span><span style="color:#e06c75;">h</span><span>[</span><span style="color:#e06c75;">j</span><span>], </span><span style="color:#e06c75;">h</span><span>[</span><span style="color:#e06c75;">i</span><span>] }
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">h </span><span>*</span><span style="color:#c678dd;">IntHeap</span><span>) </span><span style="color:#61afef;">Push</span><span>(</span><span style="color:#e06c75;">x </span><span style="color:#c678dd;">any</span><span>)        { *</span><span style="color:#e06c75;">h </span><span>= </span><span style="color:#56b6c2;">append</span><span>((*</span><span style="color:#e06c75;">h</span><span>), </span><span style="color:#e06c75;">x</span><span>.(</span><span style="color:#c678dd;">int</span><span>)) }
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">h </span><span>*</span><span style="color:#c678dd;">IntHeap</span><span>) </span><span style="color:#61afef;">Pop</span><span>() </span><span style="color:#c678dd;">any </span><span>{
+</span><span>    </span><span style="color:#e06c75;">old </span><span>:= *</span><span style="color:#e06c75;">h
+</span><span>    </span><span style="color:#e06c75;">n </span><span>:= </span><span style="color:#56b6c2;">len</span><span>(</span><span style="color:#e06c75;">old</span><span>)
+</span><span>    </span><span style="color:#e06c75;">x </span><span>:= </span><span style="color:#e06c75;">old</span><span>[</span><span style="color:#e06c75;">n</span><span>-</span><span style="color:#d19a66;">1</span><span>]
+</span><span>    *</span><span style="color:#e06c75;">h </span><span>= </span><span style="color:#e06c75;">old</span><span>[</span><span style="color:#d19a66;">0 </span><span>: </span><span style="color:#e06c75;">n</span><span>-</span><span style="color:#d19a66;">1</span><span>]
+</span><span>    </span><span style="color:#c678dd;">return </span><span style="color:#e06c75;">x
+</span><span>}
+</span><span>
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">main</span><span>() {
+</span><span>    </span><span style="color:#e06c75;">h </span><span>:= &amp;</span><span style="color:#e06c75;">IntHeap</span><span>{</span><span style="color:#d19a66;">2</span><span>, </span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#d19a66;">5</span><span>}
+</span><span>    </span><span style="color:#e06c75;">heap</span><span>.</span><span style="color:#e06c75;">Init</span><span>(</span><span style="color:#e06c75;">h</span><span>)
+</span><span>    </span><span style="color:#e06c75;">heap</span><span>.</span><span style="color:#e06c75;">Push</span><span>(</span><span style="color:#e06c75;">h</span><span>, </span><span style="color:#d19a66;">3</span><span>)
+</span><span>    </span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Println</span><span>(*</span><span style="color:#e06c75;">h</span><span>)
+</span><span>    </span><span style="color:#c678dd;">for </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Len</span><span>() &gt; </span><span style="color:#d19a66;">0 </span><span>{
+</span><span>        </span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Println</span><span>(</span><span style="color:#e06c75;">heap</span><span>.</span><span style="color:#e06c75;">Pop</span><span>(</span><span style="color:#e06c75;">h</span><span>))
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p><strong>3、标准库堆的实现</strong></p>
+<p>通过整数堆的使用方式，发现是通过定义新的整数数组类型，并为其实现 pointer receivers 的方法 Push、Pop，以及 value receivers 的方法 Len、Less、Swap 方法之后，借助 "container/heap" 包提供的方法对该类型定义的几个方法进行回调，从而实现堆的功能。下面是具体的实现代码，逻辑见注释：</p>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="color:#c678dd;">package </span><span style="color:#e06c75;">heap
+</span><span>
+</span><span style="color:#c678dd;">import </span><span style="color:#98c379;">&quot;sort&quot;
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// Interface 接口指明了想要使用这个包中的方法去实现堆，应该提供的接口方法
+</span><span style="font-style:italic;color:#5c6370;">// 在 heap.Init 方法被调用、数据为空或者原始数据有序时，满足下列条件的情况下，小根堆会被建立
+</span><span style="font-style:italic;color:#5c6370;">// !h.Less(j, i) for 0 &lt;= i &lt; h.Len() and 2*i+1 &lt;= j &lt;= 2*i+2 and j &lt; h.Len()
+</span><span style="font-style:italic;color:#5c6370;">// 注意：包中的方法会在添加和删除元素的时候调用Interface 接口实现的 Push 和 Pop方法，详见下面代码
+</span><span style="color:#c678dd;">type </span><span>Interface </span><span style="color:#c678dd;">interface </span><span>{
+</span><span>    </span><span style="color:#e06c75;">sort</span><span>.</span><span style="color:#98c379;">Interface </span><span style="font-style:italic;color:#5c6370;">// 包括 Len()、Less(i, j int)、Swap(i, j int)
+</span><span>    </span><span style="color:#61afef;">Push</span><span>(</span><span style="color:#e06c75;">x </span><span style="color:#c678dd;">any</span><span>)    </span><span style="font-style:italic;color:#5c6370;">// add x as element Len()
+</span><span>    </span><span style="color:#61afef;">Pop</span><span>() </span><span style="color:#c678dd;">any      </span><span style="font-style:italic;color:#5c6370;">// remove and return element Len() - 1.
+</span><span>}
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// 将传入的变量初始化为堆，时间复杂度为 O(n), 其中 n = h.Len().
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">Init</span><span>(</span><span style="color:#e06c75;">h </span><span style="color:#c678dd;">Interface</span><span>) {
+</span><span>    </span><span style="font-style:italic;color:#5c6370;">// heapify
+</span><span>    </span><span style="color:#e06c75;">n </span><span>:= </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Len</span><span>()
+</span><span>    </span><span style="color:#c678dd;">for </span><span style="color:#e06c75;">i </span><span>:= </span><span style="color:#e06c75;">n</span><span>/</span><span style="color:#d19a66;">2 </span><span>- </span><span style="color:#d19a66;">1</span><span>; </span><span style="color:#e06c75;">i </span><span>&gt;= </span><span style="color:#d19a66;">0</span><span>; </span><span style="color:#e06c75;">i</span><span>-- {
+</span><span>        </span><span style="color:#e06c75;">down</span><span>(</span><span style="color:#e06c75;">h</span><span>, </span><span style="color:#e06c75;">i</span><span>, </span><span style="color:#e06c75;">n</span><span>)
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// 向堆中加入新的元素，时间复杂度为 O(log n), 其中 n = h.Len().
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">Push</span><span>(</span><span style="color:#e06c75;">h </span><span style="color:#c678dd;">Interface</span><span>, </span><span style="color:#e06c75;">x </span><span style="color:#c678dd;">any</span><span>) {
+</span><span>    </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Push</span><span>(</span><span style="color:#e06c75;">x</span><span>)
+</span><span>    </span><span style="color:#e06c75;">up</span><span>(</span><span style="color:#e06c75;">h</span><span>, </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Len</span><span>()-</span><span style="color:#d19a66;">1</span><span>)
+</span><span>}
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// Pop 移除并返回堆中的最小或最大元素，具体根据 h.Less 函数确定，时间复杂度为 O(log n).
+</span><span style="font-style:italic;color:#5c6370;">// Pop 等价于 Remove(h, 0).
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">Pop</span><span>(</span><span style="color:#e06c75;">h </span><span style="color:#c678dd;">Interface</span><span>) </span><span style="color:#c678dd;">any </span><span>{
+</span><span>    </span><span style="color:#e06c75;">n </span><span>:= </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Len</span><span>() - </span><span style="color:#d19a66;">1
+</span><span>    </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Swap</span><span>(</span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#e06c75;">n</span><span>)
+</span><span>    </span><span style="color:#e06c75;">down</span><span>(</span><span style="color:#e06c75;">h</span><span>, </span><span style="color:#d19a66;">0</span><span>, </span><span style="color:#e06c75;">n</span><span>)
+</span><span>    </span><span style="font-style:italic;color:#5c6370;">// 由此看出实现 h.Pop 方法时只需要将数组最后元素取出并返回即可
+</span><span>    </span><span style="color:#c678dd;">return </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Pop</span><span>()
+</span><span>}
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// Remove 移除并返回堆中索引为 i 的元素，时间复杂度为 O(log n).
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">Remove</span><span>(</span><span style="color:#e06c75;">h </span><span style="color:#c678dd;">Interface</span><span>, </span><span style="color:#e06c75;">i </span><span style="color:#c678dd;">int</span><span>) </span><span style="color:#c678dd;">any </span><span>{
+</span><span>    </span><span style="color:#e06c75;">n </span><span>:= </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Len</span><span>() - </span><span style="color:#d19a66;">1
+</span><span>    </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">n </span><span>!= </span><span style="color:#e06c75;">i </span><span>{
+</span><span>        </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Swap</span><span>(</span><span style="color:#e06c75;">i</span><span>, </span><span style="color:#e06c75;">n</span><span>)
+</span><span>        </span><span style="color:#c678dd;">if </span><span>!</span><span style="color:#e06c75;">down</span><span>(</span><span style="color:#e06c75;">h</span><span>, </span><span style="color:#e06c75;">i</span><span>, </span><span style="color:#e06c75;">n</span><span>) {
+</span><span>            </span><span style="color:#e06c75;">up</span><span>(</span><span style="color:#e06c75;">h</span><span>, </span><span style="color:#e06c75;">i</span><span>)
+</span><span>        }
+</span><span>    }
+</span><span>    </span><span style="color:#c678dd;">return </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Pop</span><span>()
+</span><span>}
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// 当堆数组中索引 i 处的元素的值或优先级发生变更的时候调用 Fix 调整元素 i 在堆中的位置
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">Fix</span><span>(</span><span style="color:#e06c75;">h </span><span style="color:#c678dd;">Interface</span><span>, </span><span style="color:#e06c75;">i </span><span style="color:#c678dd;">int</span><span>) {
+</span><span>    </span><span style="color:#c678dd;">if </span><span>!</span><span style="color:#e06c75;">down</span><span>(</span><span style="color:#e06c75;">h</span><span>, </span><span style="color:#e06c75;">i</span><span>, </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Len</span><span>()) {
+</span><span>        </span><span style="color:#e06c75;">up</span><span>(</span><span style="color:#e06c75;">h</span><span>, </span><span style="color:#e06c75;">i</span><span>)
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// 向上进行堆调整，将新增元素上升到满足条件的位置
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">up</span><span>(</span><span style="color:#e06c75;">h </span><span style="color:#c678dd;">Interface</span><span>, </span><span style="color:#e06c75;">j </span><span style="color:#c678dd;">int</span><span>) {
+</span><span>    </span><span style="color:#c678dd;">for </span><span>{
+</span><span>        </span><span style="color:#e06c75;">i </span><span>:= (</span><span style="color:#e06c75;">j </span><span>- </span><span style="color:#d19a66;">1</span><span>) / </span><span style="color:#d19a66;">2 </span><span style="font-style:italic;color:#5c6370;">// parent
+</span><span>        </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">i </span><span>== </span><span style="color:#e06c75;">j </span><span>|| !</span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Less</span><span>(</span><span style="color:#e06c75;">j</span><span>, </span><span style="color:#e06c75;">i</span><span>) {
+</span><span>            </span><span style="color:#c678dd;">break
+</span><span>        }
+</span><span>        </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Swap</span><span>(</span><span style="color:#e06c75;">i</span><span>, </span><span style="color:#e06c75;">j</span><span>)
+</span><span>        </span><span style="color:#e06c75;">j </span><span>= </span><span style="color:#e06c75;">i
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// 向下进行堆调整，确保i0节点是左右子树中的最小节点
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">down</span><span>(</span><span style="color:#e06c75;">h </span><span style="color:#c678dd;">Interface</span><span>, </span><span style="color:#e06c75;">i0</span><span>, </span><span style="color:#e06c75;">n </span><span style="color:#c678dd;">int</span><span>) </span><span style="color:#c678dd;">bool </span><span>{
+</span><span>    </span><span style="color:#e06c75;">i </span><span>:= </span><span style="color:#e06c75;">i0
+</span><span>    </span><span style="color:#c678dd;">for </span><span>{
+</span><span>        </span><span style="color:#e06c75;">j1 </span><span>:= </span><span style="color:#d19a66;">2</span><span>*</span><span style="color:#e06c75;">i </span><span>+ </span><span style="color:#d19a66;">1
+</span><span>        </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">j1 </span><span>&gt;= </span><span style="color:#e06c75;">n </span><span>|| </span><span style="color:#e06c75;">j1 </span><span>&lt; </span><span style="color:#d19a66;">0 </span><span>{ </span><span style="font-style:italic;color:#5c6370;">// j1 &lt; 0 after int overflow
+</span><span>            </span><span style="color:#c678dd;">break
+</span><span>        }
+</span><span>        </span><span style="color:#e06c75;">j </span><span>:= </span><span style="color:#e06c75;">j1 </span><span style="font-style:italic;color:#5c6370;">// left child
+</span><span>        </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">j2 </span><span>:= </span><span style="color:#e06c75;">j1 </span><span>+ </span><span style="color:#d19a66;">1</span><span>; </span><span style="color:#e06c75;">j2 </span><span>&lt; </span><span style="color:#e06c75;">n </span><span>&amp;&amp; </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Less</span><span>(</span><span style="color:#e06c75;">j2</span><span>, </span><span style="color:#e06c75;">j1</span><span>) {
+</span><span>            </span><span style="color:#e06c75;">j </span><span>= </span><span style="color:#e06c75;">j2 </span><span style="font-style:italic;color:#5c6370;">// = 2*i + 2  // right child
+</span><span>        }
+</span><span>        </span><span style="color:#c678dd;">if </span><span>!</span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Less</span><span>(</span><span style="color:#e06c75;">j</span><span>, </span><span style="color:#e06c75;">i</span><span>) {
+</span><span>            </span><span style="color:#c678dd;">break
+</span><span>        }
+</span><span>        </span><span style="color:#e06c75;">h</span><span>.</span><span style="color:#e06c75;">Swap</span><span>(</span><span style="color:#e06c75;">i</span><span>, </span><span style="color:#e06c75;">j</span><span>)
+</span><span>        </span><span style="color:#e06c75;">i </span><span>= </span><span style="color:#e06c75;">j
+</span><span>    }
+</span><span>    </span><span style="color:#c678dd;">return </span><span style="color:#e06c75;">i </span><span>&gt; </span><span style="color:#e06c75;">i0
+</span><span>}
+</span></code></pre>
+<p><strong>4、优先队列</strong></p>
+<p>举例实现针对结构实现的最小堆，也即一般意义上的优先队列：</p>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="color:#c678dd;">package </span><span style="color:#e06c75;">main
+</span><span>
+</span><span style="color:#c678dd;">import </span><span>(
+</span><span>    </span><span style="color:#98c379;">&quot;container/heap&quot;
+</span><span>    </span><span style="color:#98c379;">&quot;log&quot;
+</span><span>)
+</span><span>
+</span><span style="color:#c678dd;">type </span><span>Node </span><span style="color:#c678dd;">struct </span><span>{
+</span><span>    </span><span style="color:#e06c75;">Val  </span><span style="color:#c678dd;">int
+</span><span>    </span><span style="color:#e06c75;">Next </span><span style="color:#c678dd;">float32
+</span><span>}
+</span><span>
+</span><span style="color:#c678dd;">type </span><span>NodeHeap []</span><span style="color:#c678dd;">Node
+</span><span>
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">pq </span><span style="color:#c678dd;">NodeHeap</span><span>) </span><span style="color:#61afef;">Less</span><span>(</span><span style="color:#e06c75;">i</span><span>, </span><span style="color:#e06c75;">j </span><span style="color:#c678dd;">int</span><span>) </span><span style="color:#c678dd;">bool </span><span>{ </span><span style="color:#c678dd;">return </span><span style="color:#e06c75;">pq</span><span>[</span><span style="color:#e06c75;">i</span><span>].</span><span style="color:#e06c75;">Val </span><span>&lt; </span><span style="color:#e06c75;">pq</span><span>[</span><span style="color:#e06c75;">j</span><span>].</span><span style="color:#e06c75;">Val </span><span>}
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">pq </span><span style="color:#c678dd;">NodeHeap</span><span>) </span><span style="color:#61afef;">Swap</span><span>(</span><span style="color:#e06c75;">i</span><span>, </span><span style="color:#e06c75;">j </span><span style="color:#c678dd;">int</span><span>)      { </span><span style="color:#e06c75;">pq</span><span>[</span><span style="color:#e06c75;">i</span><span>], </span><span style="color:#e06c75;">pq</span><span>[</span><span style="color:#e06c75;">j</span><span>] = </span><span style="color:#e06c75;">pq</span><span>[</span><span style="color:#e06c75;">j</span><span>], </span><span style="color:#e06c75;">pq</span><span>[</span><span style="color:#e06c75;">i</span><span>] }
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">pq </span><span style="color:#c678dd;">NodeHeap</span><span>) </span><span style="color:#61afef;">Len</span><span>() </span><span style="color:#c678dd;">int           </span><span>{ </span><span style="color:#c678dd;">return </span><span style="color:#56b6c2;">len</span><span>(</span><span style="color:#e06c75;">pq</span><span>) }
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">pq </span><span>*</span><span style="color:#c678dd;">NodeHeap</span><span>) </span><span style="color:#61afef;">Push</span><span>(</span><span style="color:#e06c75;">x </span><span style="color:#c678dd;">any</span><span>)        { *</span><span style="color:#e06c75;">pq </span><span>= </span><span style="color:#56b6c2;">append</span><span>(*</span><span style="color:#e06c75;">pq</span><span>, </span><span style="color:#e06c75;">x</span><span>.(</span><span style="color:#c678dd;">Node</span><span>)) }
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">pq </span><span>*</span><span style="color:#c678dd;">NodeHeap</span><span>) </span><span style="color:#61afef;">Pop</span><span>() </span><span style="color:#c678dd;">any </span><span>{
+</span><span>    </span><span style="color:#e06c75;">old </span><span>:= *</span><span style="color:#e06c75;">pq
+</span><span>    </span><span style="color:#e06c75;">n </span><span>:= </span><span style="color:#56b6c2;">len</span><span>(</span><span style="color:#e06c75;">old</span><span>)
+</span><span>    </span><span style="color:#e06c75;">x </span><span>:= </span><span style="color:#e06c75;">old</span><span>[</span><span style="color:#e06c75;">n</span><span>-</span><span style="color:#d19a66;">1</span><span>]
+</span><span>    *</span><span style="color:#e06c75;">pq </span><span>= </span><span style="color:#e06c75;">old</span><span>[</span><span style="color:#d19a66;">0 </span><span>: </span><span style="color:#e06c75;">n</span><span>-</span><span style="color:#d19a66;">1</span><span>]
+</span><span>    </span><span style="color:#c678dd;">return </span><span style="color:#e06c75;">x
+</span><span>}
+</span><span>
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">main</span><span>() {
+</span><span>    </span><span style="color:#e06c75;">pq </span><span>:= &amp;</span><span style="color:#e06c75;">NodeHeap</span><span>{}
+</span><span>    </span><span style="color:#e06c75;">heap</span><span>.</span><span style="color:#e06c75;">Init</span><span>(</span><span style="color:#e06c75;">pq</span><span>)
+</span><span>    </span><span style="color:#e06c75;">heap</span><span>.</span><span style="color:#e06c75;">Push</span><span>(</span><span style="color:#e06c75;">pq</span><span>, </span><span style="color:#e06c75;">Node</span><span>{</span><span style="color:#e06c75;">Val</span><span>: </span><span style="color:#d19a66;">10</span><span>, </span><span style="color:#e06c75;">Next</span><span>: </span><span style="color:#d19a66;">1.0</span><span>})
+</span><span>    </span><span style="color:#e06c75;">heap</span><span>.</span><span style="color:#e06c75;">Push</span><span>(</span><span style="color:#e06c75;">pq</span><span>, </span><span style="color:#e06c75;">Node</span><span>{</span><span style="color:#e06c75;">Val</span><span>: </span><span style="color:#d19a66;">11</span><span>, </span><span style="color:#e06c75;">Next</span><span>: </span><span style="color:#d19a66;">2.0</span><span>})
+</span><span>    </span><span style="color:#e06c75;">heap</span><span>.</span><span style="color:#e06c75;">Push</span><span>(</span><span style="color:#e06c75;">pq</span><span>, </span><span style="color:#e06c75;">Node</span><span>{</span><span style="color:#e06c75;">Val</span><span>: </span><span style="color:#d19a66;">1</span><span>, </span><span style="color:#e06c75;">Next</span><span>: </span><span style="color:#d19a66;">3.0</span><span>})
+</span><span>    </span><span style="color:#c678dd;">for </span><span style="color:#e06c75;">pq</span><span>.</span><span style="color:#e06c75;">Len</span><span>() &gt; </span><span style="color:#d19a66;">0 </span><span>{
+</span><span>        </span><span style="color:#e06c75;">log</span><span>.</span><span style="color:#e06c75;">Println</span><span>(</span><span style="color:#e06c75;">heap</span><span>.</span><span style="color:#e06c75;">Pop</span><span>(</span><span style="color:#e06c75;">pq</span><span>).(</span><span style="color:#c678dd;">Node</span><span>))
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p><strong>5、优先队列的应用</strong></p>
+<p>力扣第 23 题「 <a href="https://leetcode.cn/problems/merge-k-sorted-lists/">合并 K 个升序链表</a>」，要求合并 k 个有序链表为 1 个有序列表，如何快速得到 k 个节点中的最小节点，接到结果链表上？<br />
+此时就可以使用上述实现的优先队列了，不过需要稍微改动一下结构体，实现如下：</p>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="font-style:italic;color:#5c6370;">/**
+</span><span style="font-style:italic;color:#5c6370;"> * Definition for singly-linked list.
+</span><span style="font-style:italic;color:#5c6370;"> * type ListNode struct {
+</span><span style="font-style:italic;color:#5c6370;"> *     Val int
+</span><span style="font-style:italic;color:#5c6370;"> *     Next *ListNode
+</span><span style="font-style:italic;color:#5c6370;"> * }
+</span><span style="font-style:italic;color:#5c6370;"> */
+</span><span style="color:#c678dd;">type </span><span>ItemHeap []*</span><span style="color:#c678dd;">ListNode
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">pq </span><span style="color:#c678dd;">ItemHeap</span><span>) </span><span style="color:#61afef;">Less</span><span>(</span><span style="color:#e06c75;">i</span><span>, </span><span style="color:#e06c75;">j </span><span style="color:#c678dd;">int</span><span>) </span><span style="color:#c678dd;">bool </span><span>{ </span><span style="color:#c678dd;">return </span><span style="color:#e06c75;">pq</span><span>[</span><span style="color:#e06c75;">i</span><span>].</span><span style="color:#e06c75;">Val </span><span>&lt; </span><span style="color:#e06c75;">pq</span><span>[</span><span style="color:#e06c75;">j</span><span>].</span><span style="color:#e06c75;">Val</span><span>}
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">pq </span><span style="color:#c678dd;">ItemHeap</span><span>) </span><span style="color:#61afef;">Swap</span><span>(</span><span style="color:#e06c75;">i</span><span>, </span><span style="color:#e06c75;">j </span><span style="color:#c678dd;">int</span><span>) {</span><span style="color:#e06c75;">pq</span><span>[</span><span style="color:#e06c75;">i</span><span>], </span><span style="color:#e06c75;">pq</span><span>[</span><span style="color:#e06c75;">j</span><span>] = </span><span style="color:#e06c75;">pq</span><span>[</span><span style="color:#e06c75;">j</span><span>], </span><span style="color:#e06c75;">pq</span><span>[</span><span style="color:#e06c75;">i</span><span>]}
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">pq </span><span style="color:#c678dd;">ItemHeap</span><span>) </span><span style="color:#61afef;">Len</span><span>() </span><span style="color:#c678dd;">int </span><span>{</span><span style="color:#c678dd;">return </span><span style="color:#56b6c2;">len</span><span>(</span><span style="color:#e06c75;">pq</span><span>)}
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">pq </span><span>*</span><span style="color:#c678dd;">ItemHeap</span><span>) </span><span style="color:#61afef;">Push</span><span>(</span><span style="color:#e06c75;">x </span><span style="color:#c678dd;">interface</span><span>{}) { *</span><span style="color:#e06c75;">pq </span><span>= </span><span style="color:#56b6c2;">append</span><span>(*</span><span style="color:#e06c75;">pq</span><span>, </span><span style="color:#e06c75;">x</span><span>.(*</span><span style="color:#c678dd;">ListNode</span><span>)) }
+</span><span style="color:#c678dd;">func </span><span>(</span><span style="color:#e06c75;">pq </span><span>*</span><span style="color:#c678dd;">ItemHeap</span><span>) </span><span style="color:#61afef;">Pop</span><span>() </span><span style="color:#c678dd;">interface</span><span>{} {
+</span><span>    </span><span style="color:#e06c75;">old </span><span>:= *</span><span style="color:#e06c75;">pq
+</span><span>    </span><span style="color:#e06c75;">n </span><span>:= </span><span style="color:#56b6c2;">len</span><span>(</span><span style="color:#e06c75;">old</span><span>)
+</span><span>    </span><span style="color:#e06c75;">x </span><span>:= </span><span style="color:#e06c75;">old</span><span>[</span><span style="color:#e06c75;">n</span><span>-</span><span style="color:#d19a66;">1</span><span>]
+</span><span>    *</span><span style="color:#e06c75;">pq </span><span>= </span><span style="color:#e06c75;">old</span><span>[</span><span style="color:#d19a66;">0</span><span>:</span><span style="color:#e06c75;">n</span><span>-</span><span style="color:#d19a66;">1</span><span>]
+</span><span>    </span><span style="color:#c678dd;">return </span><span style="color:#e06c75;">x
+</span><span>}
+</span><span>
+</span><span>
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">mergeKLists</span><span>(</span><span style="color:#e06c75;">lists </span><span>[]*</span><span style="color:#c678dd;">ListNode</span><span>) *</span><span style="color:#c678dd;">ListNode </span><span>{
+</span><span>    </span><span style="color:#e06c75;">pq </span><span>:= &amp;</span><span style="color:#e06c75;">ItemHeap</span><span>{}
+</span><span>    </span><span style="color:#e06c75;">heap</span><span>.</span><span style="color:#e06c75;">Init</span><span>(</span><span style="color:#e06c75;">pq</span><span>)
+</span><span>    </span><span style="color:#c678dd;">for </span><span style="color:#e06c75;">_</span><span>, </span><span style="color:#e06c75;">v </span><span>:= </span><span style="color:#c678dd;">range </span><span style="color:#e06c75;">lists </span><span>{
+</span><span>        </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">v </span><span>!= </span><span style="color:#d19a66;">nil </span><span>{
+</span><span>            </span><span style="color:#e06c75;">heap</span><span>.</span><span style="color:#e06c75;">Push</span><span>(</span><span style="color:#e06c75;">pq</span><span>, </span><span style="color:#e06c75;">v</span><span>)
+</span><span>        }
+</span><span>    }
+</span><span>    </span><span style="font-style:italic;color:#5c6370;">// dummy
+</span><span>    </span><span style="color:#e06c75;">dummy </span><span>:= &amp;</span><span style="color:#e06c75;">ListNode</span><span>{}
+</span><span>    </span><span style="color:#e06c75;">p </span><span>:= </span><span style="color:#e06c75;">dummy
+</span><span>    </span><span style="color:#c678dd;">for </span><span style="color:#e06c75;">pq</span><span>.</span><span style="color:#e06c75;">Len</span><span>() &gt; </span><span style="color:#d19a66;">0 </span><span>{
+</span><span>        </span><span style="color:#e06c75;">x </span><span>:= </span><span style="color:#e06c75;">heap</span><span>.</span><span style="color:#e06c75;">Pop</span><span>(</span><span style="color:#e06c75;">pq</span><span>).(*</span><span style="color:#c678dd;">ListNode</span><span>)
+</span><span>        </span><span style="color:#e06c75;">p</span><span>.</span><span style="color:#e06c75;">Next </span><span>= </span><span style="color:#e06c75;">x
+</span><span>        </span><span style="color:#e06c75;">p </span><span>= </span><span style="color:#e06c75;">p</span><span>.</span><span style="color:#e06c75;">Next
+</span><span>        </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">x</span><span>.</span><span style="color:#e06c75;">Next </span><span>!= </span><span style="color:#d19a66;">nil </span><span>{
+</span><span>            </span><span style="color:#e06c75;">heap</span><span>.</span><span style="color:#e06c75;">Push</span><span>(</span><span style="color:#e06c75;">pq</span><span>, </span><span style="color:#e06c75;">x</span><span>.</span><span style="color:#e06c75;">Next</span><span>)
+</span><span>        }
+</span><span>    }
+</span><span>    </span><span style="color:#c678dd;">return </span><span style="color:#e06c75;">dummy</span><span>.</span><span style="color:#e06c75;">Next
+</span><span>}
+</span></code></pre>
+<p><strong>6、参考资料</strong></p>
+<ul>
+<li><a href="https://pkg.go.dev/container/heap@go1.18.3">https://pkg.go.dev/container/heap@go1.18.3</a></li>
+<li><a href="https://go.dev/tour/methods/4">You can declare methods with pointer receivers.</a></li>
+<li><a href="https://cs.opensource.google/go/go/+/refs/tags/go1.18.3:src/container/heap/heap.go">src/container/heap/heap.go</a></li>
+<li><a href="http://cngolib.com/container-heap.html">Go 标准库中文文档--黄健宏</a></li>
+</ul>
+</article>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/queue'>Queue</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/priorityqueue'>PriorityQueue</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/golang'>GoLang</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2025
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    </body>
+</html>

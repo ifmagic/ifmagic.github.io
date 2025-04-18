@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | Paxos 和 Raft</title>
+<meta
+  property="og:title"
+  content="碎碎念 | Paxos 和 Raft"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/paxos-and-raft-started/" />
+<meta property="og:description" content="本文主要介绍了本人在学习和了解分布式一致性算法 Paxos 和 Raft 时候的一点浅浅的记录，以及一些学习资料链接。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Paxos 和 Raft" />
+<meta name="twitter:description" content="本文主要介绍了本人在学习和了解分布式一致性算法 Paxos 和 Raft 时候的一点浅浅的记录，以及一些学习资料链接。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">17</span>
+        <span class="rest">Mar 23</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">Paxos 和 Raft </h1>
+    </div>
+  </div>
+    
+  <article><p>本质：集群内的多台服务器协同工作，让数据的副本在全部/大多数服务器上保持一致，确保每次读写操作都能得到正确/一致的结果。</p>
+<blockquote>
+<p><strong>什么是系统的可靠性要求？</strong><br />
+系统的可靠性要求是指系统在一定时间内能够正常运行的概率。</p>
+</blockquote>
+<blockquote>
+<p><strong>aws 的对象存储可靠性要求是 9~13 个 9，其中 9~13 个 9 的含义是什么？</strong><br />
+9 个 9：99.9999999%的可靠性，即每十亿次操作中，只有一次操作失败。</p>
+</blockquote>
+<h2 id="fen-bu-shi-yi-zhi-xing-suan-fa">分布式一致性算法</h2>
+<p>在分布式系统中一份数据冗余的存储多份保证了系统的可靠性, 而多个副本之间的一致, 通常是使用 paxos 这类分布式一致性算法来保证。</p>
+<h2 id="ji-chu-de-fu-zhi-ce-lue">基础的复制策略</h2>
+<h3 id="zhu-cong-yi-bu-fu-zhi">主从异步复制</h3>
+<p><img src="https://ifmagic.github.io/posts/paxos-and-raft-started/master-slave-asynch-replication.png" alt="主从异步复制" /></p>
+<ul>
+<li>优点：主从异步复制的性能很高，因为主节点不需要等待从节点的确认。</li>
+<li>缺点：主从异步复制的一致性无法保证。因为主节点在写入成功后就会返回确认，而从节点的复制是异步的，在复制的过程中任意一个机器发生故障，都会导致系统的数据出现不一致。</li>
+</ul>
+<h3 id="zhu-cong-tong-bu-fu-zhi">主从同步复制</h3>
+<p><img src="https://ifmagic.github.io/posts/paxos-and-raft-started/master-slave-sync-replication.png" alt="主从同步复制" /></p>
+<p>虽然这种复制策略能够保证数据的一致性，但是性能很差，并且因为主节点需要等待所有从节点的确认，那么任何一个从机宕机都会导致整个系统不可用。</p>
+<h3 id="zhu-cong-ban-tong-bu-fu-zhi">主从半同步复制</h3>
+<p><img src="https://ifmagic.github.io/posts/paxos-and-raft-started/master-slave-semi-sync.png" alt="主从半同步复制" /></p>
+<p>主从半同步复制是主从同步复制和主从异步复制的折中方案。它要求 master 在应答客户端之前必须把数据复制到足够多的机器上,
+但不需要是全部。<br />
+但是存在一个显著的问题是，假如 a 数据复制到 slave1，但没有复制到 slave2 和 slave3；数据 b 复制到 slave2 和 slave3，但没有复制到
+slave1，那么这个时候如果 master 宕机，就会导致没有一个 slave 是完整的数据，从而导致数据不一致。</p>
+<h3 id="duo-shu-pai-du-xie">多数派读写</h3>
+<p><img src="https://ifmagic.github.io/posts/paxos-and-raft-started/majority-reading-writing.png" alt="多数派读写" /></p>
+<p>显然这个策略刚刚好解决了上面主从半同步复制策略的问题，但是这个策略的性能也不好，因为 master 需要等待超过半数的 slave
+确认后才能应答客户端。除此之外，在一些情况下，这个策略也无法保证数据的一致性。</p>
+<p>如对于一个数据 a 在第一次更新时，在 slave1 和 slave2 上写入了<code>a=x</code>；在第二次更新时，在 slave2 和 slave3 上写入了<code>a=y</code>
+。客户端来访问的时候，会发现 slave1 和 slave2 上的数据是不一致的。</p>
+<h3 id="duo-shu-pai-du-xie-hou-xie-ru-you-sheng">多数派读写-后写入优胜</h3>
+<p>这个策略是对上述策略的一个实现的优化，要求我们在复制数据的时候不仅要写入数据本身，还要写入数据的版本号(保证是递增的即可)
+。这样在读取数据的时候，我们可以通过版本号来获取最新的数据，从而保证数据的一致性。</p>
+<p>存在的问题：仍旧是上面的例子，假设第二次更新的时候只更新了 slave3，然后客户端直接终止了。那么当客户端再次访问的时候，根据多数派读写的原则，则会发生如下情况：</p>
+<pre style="background-color:#282c34;color:#abb2bf;"><code><span>slave1 + slave2 --&gt; a=x
+</span><span>slave2 + slave3 --&gt; a=y
+</span></code></pre>
+<p>显然这就导致了数据的不一致。</p>
+<p><strong>tips:</strong>
+大佬的思考逻辑太牛逼了，我自己想的话最多想到主从半同步复制这种折中方案就不再思考了。由此可见，没有一个完美的方案，只有相对完美的方案[doge]。</p>
+<h2 id="paxos-gong-shi-suan-fa">Paxos 共识算法</h2>
+<p><a href="https://en.wikipedia.org/wiki/Paxos_(computer_science)">wikipedia</a> 是这样介绍 paxos 的：</p>
+<blockquote>
+<p>Paxos is a family of protocols for solving consensus in a network of unreliable or fallible processors. Consensus is
+the process of agreeing on one result among a group of participants.</p>
+</blockquote>
+<p>它可以被认为是多数派读写的进一步升级, paxos 中通过 2 次原本并不严谨的多数派读写, 实现了严谨的强一致共识算法。</p>
+<p>具体推导流程，参看大佬<a href="https://github.com/drmingdrmer">drmingdrmer</a>
+文章<a href="https://blog.openacid.com/algo/paxos/">可靠分布式系统-paxos 的直观解释</a>。</p>
+<p>最终仿照作者<a href="https://github.com/drmingdrmer">drmingdrmer</a>原版 go 实现的 <code>paxoskv</code>，实现了一个 rust
+版本的<a href="https://github.com/ifmagic/consistency/tree/main/paxoskv">paxoskv</a>，之后我感觉对 <code>Paxos</code> 有了一个较为粗浅的认知。</p>
+<p>但此时我又开始回想，为什么如今工业界的分布式系统都不再使用 <code>Paxos</code> 而是 <code>Raft</code>
+呢？网上直接搜索看到的答案都是实现过于复杂且难于理解，我觉得要了解真正的原因，只能去看 <code>Raft</code> 是如何批判 <code>Paxos</code> 的？ <code>Raft</code>
+又提出了一种怎样的一致性共识策略？raft 在工程上的实现是否真的更简单且易于理解？</p>
+<h2 id="raft-lun-wen-yue-du-zhai-yao">Raft 论文阅读摘要</h2>
+<blockquote>
+<p>🌻 感谢开源项目 <a href="https://github.com/maemual/raft-zh_cn">maemual/raft-zh_cn</a>，让我可以以较低的成本阅读 raft 论文。</p>
+</blockquote>
+<p><strong>总结：leader 选举 + 日志复制 + 应用状态机，这三个部分构成了 Raft 的核心。</strong></p>
+</article>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/distributed'>Distributed</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/raft'>Raft</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/paxos'>Paxos</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2025
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    </body>
+</html>

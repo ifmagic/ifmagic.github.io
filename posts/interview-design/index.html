@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | 几个有意思的设计问题以及解决方案</title>
+<meta
+  property="og:title"
+  content="碎碎念 | 几个有意思的设计问题以及解决方案"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/interview-design/" />
+<meta property="og:description" content="在有的面试中总会给出一些简单的设计问题作为笔试题目让候选人解答，本文记录几个有意思的小问题：设计并发安全的 HashMap、设计高性能的内存队列、蓄水池采样算法的经典应用。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="几个有意思的设计问题以及解决方案" />
+<meta name="twitter:description" content="在有的面试中总会给出一些简单的设计问题作为笔试题目让候选人解答，本文记录几个有意思的小问题：设计并发安全的 HashMap、设计高性能的内存队列、蓄水池采样算法的经典应用。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">04</span>
+        <span class="rest">Oct 24</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">几个有意思的设计问题以及解决方案 </h1>
+    </div>
+  </div>
+    
+  <article><h2 id="1-she-ji-xian-cheng-an-quan-gao-xing-neng-de-hashmap">1. 设计线程安全高性能的 HashMap</h2>
+<p> 说实话从在接触这道面试题之前，我从未去思考或者了解过并发 HashMap 的实现原理，我可以脱口而出普通 HashMap 的底层实现原理，甚至可以说出 CPP STL 中两个 HashMap unordered_map 和 map 的区别以及优势和劣势，但是对于并发 HashMap 的实现原理，我一无所知。如果是面试中直接提问的话，以我不太聪明的样子，我应该能提出借助锁的方式来实现，但具体的实现方式在回答时，肯定是支支吾吾、顾左右而言他，在如今这个愈发内卷的求职市场，毫无疑问会被 Pass。</p>
+<p>首先思考普通 HashMap 的实现原理，数据结构设计如下图所示：
+<img src="https://ifmagic.github.io/posts/interview-design/normal_map.png" alt="normal_map" /></p>
+<p>我选择使用数据+链表的底层存储结构来实现 HashMap，数组用来快速定位和查找元素，链表用来解决哈希冲突的问题。同时为避免桶被多个 HashKey 映射到（即 hash 冲突很高），我们可以考虑在链表长度到达一定的阈值之后将其转化为红黑树，以提高查找效率。</p>
+<p>接下来需要考虑如何设计线程安全的 HashMap, 如果仍旧使用上图所示的数据结构，在将其设计或者改造为线程安全的 HashMap<br />
+时，有以下几个点需要重新考虑：</p>
+<ul>
+<li>由于 HashMap 底层未使用锁，所以在同时访问同一个 key 时，会发生 Data Race 的情况</li>
+<li>由于我们会使用链表来作为底层的数据存储结构，多线程的情况下，可能会出现链表被破坏的情况（同时插入+删除同一个链表）</li>
+<li>直接使用 std::mutex 来保证数据线程安全，会导致性能下降</li>
+</ul>
+<p><strong>改造为线程安全的 HashMap</strong></p>
+<p>一种显而易见的设计思路就是为 hash 表中的每一个表项设置单独的读写锁，来通过将锁的粒度细化来提高并发度。但是这样的设计会导致即使 hash 冲突不是太严重的情况下，也会导致性能的下降，因为每个表项都设置了一个读写锁。</p>
+<p>所以我们可以考虑引入 CAS 来降低获取锁的开销，在读取数据、获取最新的链表头节点以及插入新的链表头节点时直接使用 CAS<br />
+来保证线程安全，避免使用锁。这样对于设计良好，hash 冲突不是太严重的情况下，会大大减少获取锁导致的线程上下文切换开销。最终并发安全的 HashMap 设计如下图所示：
+<img src="https://ifmagic.github.io/posts/interview-design/concur_map.png" alt="concurrent_map" /></p>
+<p>为了实现的方便，我们直接使用 atomic 类来实现相关的 CAS 操作。以下是一些关键函数的关键逻辑实现，先定义链表项如下：</p>
+<pre data-lang="cpp" style="background-color:#282c34;color:#abb2bf;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="color:#c678dd;">template </span><span>&lt;</span><span style="color:#c678dd;">typename</span><span> T&gt;
+</span><span style="color:#c678dd;">class </span><span style="color:#e5c07b;">Node </span><span>{
+</span><span>    </span><span style="color:#c678dd;">const</span><span> std::string key_;
+</span><span>    std::atomic&lt;T&gt; value_;
+</span><span>    std::atomic&lt;Node&lt;T&gt;*&gt; next_;
+</span><span>    </span><span style="font-style:italic;color:#5c6370;">// std::mutex mutex_;
+</span><span>};
+</span></code></pre>
+<ul>
+<li>put 操作</li>
+</ul>
+<pre data-lang="cpp" style="background-color:#282c34;color:#abb2bf;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-style:italic;color:#5c6370;">// 1. 计算hash值，定位表项
+</span><span style="font-style:italic;color:#5c6370;">// 2. 使用cas判断表项是否存在, 不存在的话直接构造链表插入到表头，此时不需要锁
+</span><span style="font-style:italic;color:#5c6370;">// 3. 如果表项存在，需要加锁，然后遍历当前key是否存在，不存在插入到链表尾部，存在更新对应的值
+</span><span style="font-style:italic;color:#5c6370;">// 4. 最后，如果关心 map的数量，可以累加计数器
+</span></code></pre>
+<ul>
+<li>get 操作</li>
+</ul>
+<pre data-lang="cpp" style="background-color:#282c34;color:#abb2bf;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-style:italic;color:#5c6370;">// 1. 计算hash值，定位表项
+</span><span style="font-style:italic;color:#5c6370;">// 2. 直接遍历即可，因为使用了CAS，我们总是能保证读取到最新的链表节点数据，而不是脏数据。需要注意的是，使用时注意判空，因为在读取的过程中可能会有节点被删除
+</span><span style="font-style:italic;color:#5c6370;">// 读操作不需要加锁
+</span></code></pre>
+<ul>
+<li>remove 操作</li>
+</ul>
+<pre data-lang="cpp" style="background-color:#282c34;color:#abb2bf;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-style:italic;color:#5c6370;">// 1. 计算hash值，定位表项
+</span><span style="font-style:italic;color:#5c6370;">// 2. 找到对应的表项，先对表项对应的链表加锁，遍历找到节点之后，删除节点
+</span></code></pre>
+<ul>
+<li>扩容操作</li>
+</ul>
+<pre data-lang="cpp" style="background-color:#282c34;color:#abb2bf;" class="language-cpp "><code class="language-cpp" data-lang="cpp"><span style="font-style:italic;color:#5c6370;">// 1. 申请当前 size 倍数大小的存储空间
+</span><span style="font-style:italic;color:#5c6370;">// 2. 可以在有新的put/delete 操作时触发扩容操作，直到表项迁移完成
+</span><span style="font-style:italic;color:#5c6370;">// 3. 如此，当触发扩容操作时，可以让多个线程同时对不同表项进行数据迁移，以提升效率
+</span></code></pre>
+<h2 id="2-she-ji-yi-ge-ji-yu-nei-cun-de-xiao-xi-xiao-fei-dui-lie">2. 设计一个基于内存的消息消费队列</h2>
+<p>题目的要求可以总结为以下几个点：</p>
+<ul>
+<li>CPU 计算资源尽可能少，内存可以认为无限，且输出数据的延迟尽可能低。要求我们要尽可能快的读取生产的数据，并使用高效的排序算法，及时将数据写入到下游同步队列中</li>
+<li>限制输入队列中的位置序号和输出队列中的位置序号之差不超过 10 万。这说明我们每一个批次处理的数据最多为 10 万条</li>
+<li>模块内部最多只能创建 10 个线程，说明系统的资源是有限的，我们需要合理的利用资源，最好让系统可配置化</li>
+</ul>
+<p>结合以上这几点，我的设计思路如下：
+<img src="https://ifmagic.github.io/posts/interview-design/queue_1.png" alt="queue" /></p>
+<p>图中的设计模型可以简单概括为，一个 reader thread 负责从生产者同步队列按批次读取数据，每个批次的数据（<code>m=10w</code>）分为多个块，块的数目由 worker 工作线程的数目（n）来决定，故每个块的大小应该 = <code>m/n</code>，之后在 worker 线程内部我们局部针对这个独立的块进行排序。最终每个 worker 将排序之后的数据存储到循环队列里面，循环队列设计为每 3 项存储一个批次的数据，每一项保证内部有序。<br />
+此后，writer thread 使用大小为 n 的优先队列多路归并排序一个批次内所有的元素并且把他们一一发送到消费者同步队列供其他业务方使用。</p>
+<p>值得注意的是我们在 worker 内部也设置了缓存队列，这意味着，reader 无须等待数据全部被排序处理就可以继续读取下一个批次的数据。后续引入循环队列的目的也是类似的思路，让 reader, worker, writer 三个主要的组件异步执行可以极大的扩展系统的性能。</p>
+<p>以上应该可以应对大部分并发场景下的业务，下面是将 reader 线程改造为多线程读取模式的一点思考：）
+<img src="https://ifmagic.github.io/posts/interview-design/queue_2.png" alt="queue" /></p>
+<p>假设现在每批次我们直接写入最大的 10 万条数据，那么我们可以将数据分为两个阶段来处理，我的主要实现思路如下：</p>
+<p>1.<strong>启动 n 个读取数据线程</strong>，则每个线程每一个批次应该读取的数据是 <code>y=10w/n</code>，然后我们将该批次的 y 个数据存入一个独立的优先队列中（本质是用 weight 做排序的小根堆）</p>
+<p>如图中所示，取 n=3，则 <code>y=3.3w≈420kb</code>，然后将这个队列的数据存储到如 p2 所示的优先队列数组里面，其中每一个读取数据线程存放数据的位置是有规律的，以第 0 个线程为例，每批次存放数据的位置是 <code>0, 3, 6, 9, 12, ...</code> ，第 1 个线程存放的位置是 <code>1, 4, 7, 10, 13, ...</code>，以此类推。需要注意的时如果当前批次的数据量不足 <code>y</code>，则直接将数据存入到优先队列中，不需要等待。</p>
+<p>但考虑到线程调度的不确定性，势必要通过一些同步措施确保当前批次数据在 n 个数据读取线程中分布均匀，具体效率如何仍旧存疑，未必高于单线程读取数据。</p>
+<p>2.据 1 中的描述，我们需要<strong>将优先队列数组设置为一个循环数组</strong>，来保护内存。同时需要记录读取完毕和写入完毕的数据批次，据此，可以计算出读取数据线程要写入数据的索引位置，以及 write thread 线程要读取发送数据的偏移量。</p>
+<p>3.<strong>启动一个 write thread 线程</strong>，该线程负责将优先队列中的数据进行排序，然后写入到消费者队列中，因为优先队列本身已经有序，所以我们可以直接基于多路归并的思路按 weight 的值从小到大合并数据，然后写入到消费者队列中，性能不受影响。需要注意的是，我们每次读取数据时要确保当前处理批次下优先队列数组里面有值才去处理，同时需要释放上一批次的数据。</p>
+<p>4.基于以上设计，我们可以动态调整每批次要写入的最大数据量以及读取数据线程的数量，以适应不同的场景使用条件。</p>
+<h2 id="3-xu-shui-chi-chou-yang-suan-fa">3. 蓄水池抽样算法</h2>
+<p>当然面试的时候一般提问方式是：给定一个未知大小的数据流，如何从中随机抽取 k 个数据，要求每个数据被抽取的概率相等。这个问题的解决方案就是著名的<a href="https://www.jianshu.com/p/7a9ea6ece2af">蓄水池抽样算法</a>，自然我是既没见过也没想出来啦。
+此处做一个上述博客算法内容的简单备份，蓄水池抽样算法的核心如下：</p>
+<pre data-lang="java" style="background-color:#282c34;color:#abb2bf;" class="language-java "><code class="language-java" data-lang="java"><span style="color:#c678dd;">int[]</span><span> reservoir = </span><span style="color:#c678dd;">new int</span><span>[m];
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;">// init
+</span><span style="color:#c678dd;">for </span><span>(</span><span style="color:#c678dd;">int</span><span> i = </span><span style="color:#d19a66;">0</span><span>; i &lt; reservoir.length; i++)
+</span><span>{
+</span><span>    reservoir[i] = dataStream[i];
+</span><span>}
+</span><span>
+</span><span style="color:#c678dd;">for </span><span>(</span><span style="color:#c678dd;">int</span><span> i = m; i &lt; dataStream.length; i++)
+</span><span>{
+</span><span>    </span><span style="font-style:italic;color:#5c6370;">// 随机获得一个[0, i]内的随机整数
+</span><span>    </span><span style="color:#c678dd;">int</span><span> d = rand.</span><span style="color:#e06c75;">nextInt</span><span>(i + </span><span style="color:#d19a66;">1</span><span>);
+</span><span>    </span><span style="font-style:italic;color:#5c6370;">// 如果随机整数落在[0, m-1]范围内，则替换蓄水池中的元素
+</span><span>    </span><span style="color:#c678dd;">if </span><span>(d &lt; m)
+</span><span>    {
+</span><span>        reservoir[d] = dataStream[i];
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>算法的精妙之处在于：<strong>当处理完所有的数据时，蓄水池中的每个数据都是以 m/N 的概率获得的</strong>。</p>
+</article>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/interview'>Interview</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/design'>Design</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2025
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    </body>
+</html>

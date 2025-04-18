@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | defer、panic与recover</title>
+<meta
+  property="og:title"
+  content="碎碎念 | defer、panic与recover"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/go-defer-and-panic/" />
+<meta property="og:description" content="go 既拥有 if，for，switch，goto 这四种常见的控制语句，也拥有在一个单独的 goroutine 中运行代码的 go 语句，这篇文章主要谈论人们较少提及的 defer、panic、recover 语句。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="defer、panic与recover" />
+<meta name="twitter:description" content="go 既拥有 if，for，switch，goto 这四种常见的控制语句，也拥有在一个单独的 goroutine 中运行代码的 go 语句，这篇文章主要谈论人们较少提及的 defer、panic、recover 语句。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">22</span>
+        <span class="rest">Aug 22</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">defer、panic与recover </h1>
+    </div>
+  </div>
+    
+  <article><p><strong>defer 语句</strong>会把一个函数调用放置到一个列表中，当调用 <code>defer</code> 语句的函数返回时会依次调用该列表中定义的所有函数。<code>defer</code> 通常会调用执行各种清理动作的简单函数。比如说下面这个例子，打开两个文件，并将内容从一个文件复制到另一个文件中：</p>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="color:#c678dd;">func </span><span style="color:#61afef;">CopyFile</span><span>(</span><span style="color:#e06c75;">dstName</span><span>, </span><span style="color:#e06c75;">srcName </span><span style="color:#c678dd;">string</span><span>) (</span><span style="color:#e06c75;">written </span><span style="color:#c678dd;">int64</span><span>, </span><span style="color:#e06c75;">err </span><span style="color:#c678dd;">error</span><span>) {
+</span><span>    </span><span style="color:#e06c75;">src</span><span>, </span><span style="color:#e06c75;">err </span><span>:= </span><span style="color:#e06c75;">os</span><span>.</span><span style="color:#e06c75;">Open</span><span>(</span><span style="color:#e06c75;">srcName</span><span>)
+</span><span>    </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">err </span><span>!= </span><span style="color:#d19a66;">nil </span><span>{
+</span><span>        </span><span style="color:#c678dd;">return
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#e06c75;">dst</span><span>, </span><span style="color:#e06c75;">err </span><span>:= </span><span style="color:#e06c75;">os</span><span>.</span><span style="color:#e06c75;">Create</span><span>(</span><span style="color:#e06c75;">dstName</span><span>)
+</span><span>    </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">err </span><span>!= </span><span style="color:#d19a66;">nil </span><span>{
+</span><span>        </span><span style="color:#c678dd;">return
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#e06c75;">written</span><span>, </span><span style="color:#e06c75;">err </span><span>= </span><span style="color:#e06c75;">io</span><span>.</span><span style="color:#e06c75;">Copy</span><span>(</span><span style="color:#e06c75;">dst</span><span>, </span><span style="color:#e06c75;">src</span><span>)
+</span><span>    </span><span style="color:#e06c75;">dst</span><span>.</span><span style="color:#e06c75;">Close</span><span>()
+</span><span>    </span><span style="color:#e06c75;">src</span><span>.</span><span style="color:#e06c75;">Close</span><span>()
+</span><span>    </span><span style="color:#c678dd;">return
+</span><span>}
+</span></code></pre>
+<p>上面的程序看起来是正常的，但是如果 <code>os.Create(dstName)</code> 执行失败，程序将直接返回，从而导致 src 文件句柄没有及时关闭。一种比较简单的解决方式是将 src.Close() 方法在第二个 return 语句执行之前手动调用一次，但在函数逻辑很复杂的情况下可能会很容易被忽视，相反通过 defer 语句我们可以确保文件总是被及时关闭，上面的程序重构后如下：</p>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="color:#c678dd;">func </span><span style="color:#61afef;">CopyFile</span><span>(</span><span style="color:#e06c75;">dstName</span><span>, </span><span style="color:#e06c75;">srcName </span><span style="color:#c678dd;">string</span><span>) (</span><span style="color:#e06c75;">written </span><span style="color:#c678dd;">int64</span><span>, </span><span style="color:#e06c75;">err </span><span style="color:#c678dd;">error</span><span>) {
+</span><span>    </span><span style="color:#e06c75;">src</span><span>, </span><span style="color:#e06c75;">err </span><span>:= </span><span style="color:#e06c75;">os</span><span>.</span><span style="color:#e06c75;">Open</span><span>(</span><span style="color:#e06c75;">srcName</span><span>)
+</span><span>    </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">err </span><span>!= </span><span style="color:#d19a66;">nil </span><span>{
+</span><span>        </span><span style="color:#c678dd;">return
+</span><span>    }
+</span><span>    </span><span style="color:#c678dd;">defer </span><span style="color:#e06c75;">src</span><span>.</span><span style="color:#e06c75;">Close</span><span>()
+</span><span>
+</span><span>    </span><span style="color:#e06c75;">dst</span><span>, </span><span style="color:#e06c75;">err </span><span>:= </span><span style="color:#e06c75;">os</span><span>.</span><span style="color:#e06c75;">Create</span><span>(</span><span style="color:#e06c75;">dstName</span><span>)
+</span><span>    </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">err </span><span>!= </span><span style="color:#d19a66;">nil </span><span>{
+</span><span>        </span><span style="color:#c678dd;">return
+</span><span>    }
+</span><span>    </span><span style="color:#c678dd;">defer </span><span style="color:#e06c75;">dst</span><span>.</span><span style="color:#e06c75;">Close</span><span>()
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">return </span><span style="color:#e06c75;">io</span><span>.</span><span style="color:#e06c75;">Copy</span><span>(</span><span style="color:#e06c75;">dst</span><span>, </span><span style="color:#e06c75;">src</span><span>)
+</span><span>}
+</span></code></pre>
+<p>defer 语句确保了无论在函数中有多少的 return 语句我们都可以在打开文件之后立刻通过 defer 语句调用 close 方法关闭文件，以确保文件最终会及时关闭。defer 语句的行为是非常简单明了的，下面是几个简单的规则：</p>
+<ul>
+<li>1、defer 语句调用的函数参数值是基于调用 defer 语句时的对应变量值来确定的。比如在下面这个例子中表达式 "i" 的值在 defer fmt.Println 的时候就已经被赋值，在函数返回的时候 defer 语句将打印出 "0"。</li>
+</ul>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="color:#c678dd;">func </span><span style="color:#61afef;">a</span><span>() {
+</span><span>    </span><span style="color:#e06c75;">i </span><span>:= </span><span style="color:#d19a66;">0
+</span><span>    </span><span style="color:#c678dd;">defer </span><span style="color:#e06c75;">fmt</span><span>.</span><span style="color:#e06c75;">Println</span><span>(</span><span style="color:#e06c75;">i</span><span>)
+</span><span>    </span><span style="color:#e06c75;">i</span><span>++
+</span><span>}
+</span></code></pre>
+<ul>
+<li>2、在函数返回的时候 defer 列表中定义的函数将以后进先出的次序执行。如下面的程序输出为 "3210" :</li>
+</ul>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="color:#c678dd;">func </span><span style="color:#61afef;">b</span><span>() {
+</span><span>    </span><span style="color:#c678dd;">for </span><span style="color:#e06c75;">i </span><span>:= </span><span style="color:#d19a66;">0</span><span>; </span><span style="color:#e06c75;">i </span><span>&lt; </span><span style="color:#d19a66;">4</span><span>; </span><span style="color:#e06c75;">i</span><span>++ {
+</span><span>        </span><span style="color:#c678dd;">defer </span><span style="color:#e06c75;">fmt</span><span>.</span><span style="color:#e06c75;">Print</span><span>(</span><span style="color:#e06c75;">i</span><span>)
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<ul>
+<li>3、defer 可以读取和更新函数返回值中的命名返回值。如下面的函数返回值为 2:</li>
+</ul>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="color:#c678dd;">func </span><span style="color:#61afef;">c</span><span>() (</span><span style="color:#e06c75;">i </span><span style="color:#c678dd;">int</span><span>) {
+</span><span>    </span><span style="color:#c678dd;">defer func</span><span>() { </span><span style="color:#e06c75;">i</span><span>++ }()
+</span><span>    </span><span style="color:#c678dd;">return </span><span style="color:#d19a66;">1
+</span><span>}
+</span></code></pre>
+<p><strong>Panic</strong> 是一个阻止函数继续执行并向上抛出异常的内置函数。当函数 F 发生 panic 时，函数 F 的执行会停止，但其中定义的 defer 函数会正常执行。而此时对于函数 F 的调用者，F 的行为就像是手动调用了 panic，之后该程序会根据栈信息不停的向上返回，直到在这个 goroutine 中所有的程序都返回，这意味着该程序已经崩溃。Panics 既能通过手动调用 panic 语句调用也可能会发生在程序运行时，比如说数组越界。</p>
+<p><strong>Recover</strong> 是一个可以用来恢复发生 panic 的 goroutine 的内置函数，并且仅仅只能用在 defer 调用的函数里面。如果程序执行正常，recover() 函数将返回 nil 值，并且不会对程序造成影响；如果程序发生了 panic, 那么 recover() 将会捕获传递给 panic 的信息，并且恢复程序正常执行。</p>
+<p>下面的程序演示了 panic 和 defer 的工作机制：</p>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="color:#c678dd;">package </span><span style="color:#e06c75;">main
+</span><span>
+</span><span style="color:#c678dd;">import </span><span style="color:#98c379;">&quot;fmt&quot;
+</span><span>
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">main</span><span>() {
+</span><span>    </span><span style="color:#e06c75;">f</span><span>()
+</span><span>    </span><span style="color:#e06c75;">fmt</span><span>.</span><span style="color:#e06c75;">Println</span><span>(</span><span style="color:#98c379;">&quot;Returned normally from f.&quot;</span><span>)
+</span><span>}
+</span><span>
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">f</span><span>() {
+</span><span>    </span><span style="color:#c678dd;">defer func</span><span>() {
+</span><span>        </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">r </span><span>:= </span><span style="color:#56b6c2;">recover</span><span>(); </span><span style="color:#e06c75;">r </span><span>!= </span><span style="color:#d19a66;">nil </span><span>{
+</span><span>            </span><span style="color:#e06c75;">fmt</span><span>.</span><span style="color:#e06c75;">Println</span><span>(</span><span style="color:#98c379;">&quot;Recovered in f&quot;</span><span>, </span><span style="color:#e06c75;">r</span><span>)
+</span><span>        }
+</span><span>    }()
+</span><span>    </span><span style="color:#e06c75;">fmt</span><span>.</span><span style="color:#e06c75;">Println</span><span>(</span><span style="color:#98c379;">&quot;Calling g.&quot;</span><span>)
+</span><span>    </span><span style="color:#e06c75;">g</span><span>(</span><span style="color:#d19a66;">0</span><span>)
+</span><span>    </span><span style="color:#e06c75;">fmt</span><span>.</span><span style="color:#e06c75;">Println</span><span>(</span><span style="color:#98c379;">&quot;Returned normally from g.&quot;</span><span>)
+</span><span>}
+</span><span>
+</span><span style="color:#c678dd;">func </span><span style="color:#61afef;">g</span><span>(</span><span style="color:#e06c75;">i </span><span style="color:#c678dd;">int</span><span>) {
+</span><span>    </span><span style="color:#c678dd;">if </span><span style="color:#e06c75;">i </span><span>&gt; </span><span style="color:#d19a66;">3 </span><span>{
+</span><span>        </span><span style="color:#e06c75;">fmt</span><span>.</span><span style="color:#e06c75;">Println</span><span>(</span><span style="color:#98c379;">&quot;Panicking!&quot;</span><span>)
+</span><span>        </span><span style="color:#56b6c2;">panic</span><span>(</span><span style="color:#e06c75;">fmt</span><span>.</span><span style="color:#e06c75;">Sprintf</span><span>(</span><span style="color:#98c379;">&quot;</span><span style="color:#d19a66;">%v</span><span style="color:#98c379;">&quot;</span><span>, </span><span style="color:#e06c75;">i</span><span>))
+</span><span>    }
+</span><span>    </span><span style="color:#c678dd;">defer </span><span style="color:#e06c75;">fmt</span><span>.</span><span style="color:#e06c75;">Println</span><span>(</span><span style="color:#98c379;">&quot;Defer in g&quot;</span><span>, </span><span style="color:#e06c75;">i</span><span>)
+</span><span>    </span><span style="color:#e06c75;">fmt</span><span>.</span><span style="color:#e06c75;">Println</span><span>(</span><span style="color:#98c379;">&quot;Printing in g&quot;</span><span>, </span><span style="color:#e06c75;">i</span><span>)
+</span><span>    </span><span style="color:#e06c75;">g</span><span>(</span><span style="color:#e06c75;">i </span><span>+ </span><span style="color:#d19a66;">1</span><span>)
+</span><span>}
+</span></code></pre>
+<p>上面的例子中函数 g 接受参数 i，如果参数 i 的值大于 3 程序会发生 panic，否则它会用 <code>i + 1</code> 的值作为参数，递归的调用函数 g。函数 f 使用 defer 函数借助 recover 捕捉 panic 错误，如果 recover 返回值为非 nil 值，则打印出捕获到的值。在继续阅读之前，试着想象一下这个程序的输出可能是什么。</p>
+<p>程序将会输出：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">Calling</span><span> g.
+</span><span style="color:#e06c75;">Printing</span><span> in g 0
+</span><span style="color:#e06c75;">Printing</span><span> in g 1
+</span><span style="color:#e06c75;">Printing</span><span> in g 2
+</span><span style="color:#e06c75;">Printing</span><span> in g 3
+</span><span style="color:#e06c75;">Panicking!
+</span><span style="color:#e06c75;">Defer</span><span> in g 3
+</span><span style="color:#e06c75;">Defer</span><span> in g 2
+</span><span style="color:#e06c75;">Defer</span><span> in g 1
+</span><span style="color:#e06c75;">Defer</span><span> in g 0
+</span><span style="color:#e06c75;">Recovered</span><span> in f 4
+</span><span style="color:#e06c75;">Returned</span><span> normally from f.
+</span></code></pre>
+<p>如果将上面函数 f 中的 defer 函数移除，那么 panic 异常最终将会抛出到 goroutine 调用栈的顶部，然后终止程序。之后程序输出将如下所示：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">Calling</span><span> g.
+</span><span style="color:#e06c75;">Printing</span><span> in g 0
+</span><span style="color:#e06c75;">Printing</span><span> in g 1
+</span><span style="color:#e06c75;">Printing</span><span> in g 2
+</span><span style="color:#e06c75;">Printing</span><span> in g 3
+</span><span style="color:#e06c75;">Panicking!
+</span><span style="color:#e06c75;">Defer</span><span> in g 3
+</span><span style="color:#e06c75;">Defer</span><span> in g 2
+</span><span style="color:#e06c75;">Defer</span><span> in g 1
+</span><span style="color:#e06c75;">Defer</span><span> in g 0
+</span><span style="color:#e06c75;">panic:</span><span> 4
+</span><span>
+</span><span style="color:#e06c75;">panic</span><span> PC=0x2a9cd8
+</span><span style="color:#e06c75;">[stack</span><span> trace omitted]
+</span></code></pre>
+<p>Go 标准库中的 <a href="https://pkg.go.dev/encoding/json">json package</a> 包，包含 panic 和 recover 的实际例子。它使用一组递归函数对接口进行编码，如果在遍历值时发生错误，panic 会被调用然后返回到堆栈的顶层，然后使用 recover 捕获错误或者返回一个合适的错误值（具体见 <a href="https://go.dev/src/encoding/json/encode.go">encode.go</a> 中 encodeState 类型的 'error' 和 'marshal' 方法）。</p>
+<p>Go 标准库中的约定是在包内部使用 panic，而它的外部 API 仍然提供明确的错误返回值。</p>
+<p>其他一些使用 defer 的场景包括释放一个 mutex、打印出 footer 等：</p>
+<pre data-lang="go" style="background-color:#282c34;color:#abb2bf;" class="language-go "><code class="language-go" data-lang="go"><span style="font-style:italic;color:#5c6370;">// releasing a mutex
+</span><span style="color:#e06c75;">mu</span><span>.</span><span style="color:#e06c75;">Lock</span><span>()
+</span><span style="color:#c678dd;">defer </span><span style="color:#e06c75;">mu</span><span>.</span><span style="color:#e06c75;">Unlock</span><span>()
+</span><span style="font-style:italic;color:#5c6370;">// printing a footer
+</span><span style="color:#e06c75;">printHeader</span><span>()
+</span><span style="color:#c678dd;">defer </span><span style="color:#e06c75;">printFooter</span><span>()
+</span></code></pre>
+<p>总之，defer 语句为程序的控制流提供了不寻常和强有力的机制，可以使用它来模拟其他编程语言中需要借助专用结构才能实现的功能。</p>
+</article>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/defer'>defer</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/panic'>panic</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/golang'>GoLang</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2025
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    </body>
+</html>

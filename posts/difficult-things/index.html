@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | 你遇到的最困难的x件事</title>
+<meta
+  property="og:title"
+  content="碎碎念 | 你遇到的最困难的x件事"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/difficult-things/" />
+<meta property="og:description" content="本文是一篇指向性非常强的文章，讨论了工作中遇到的较为困难的x件事情。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="你遇到的最困难的x件事" />
+<meta name="twitter:description" content="本文是一篇指向性非常强的文章，讨论了工作中遇到的较为困难的x件事情。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">29</span>
+        <span class="rest">Nov 24</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">你遇到的最困难的x件事 </h1>
+    </div>
+  </div>
+    
+  <article><h2 id="1-shi-yong-cuo-wu-de-xian-cheng-mo-xing">1. 使用错误的线程模型</h2>
+<p>这是一个由于使用 <code>CompletableFuture.runAsync</code> 发起 Dubbo 调用而导致的问题。由于 <code>CompletableFuture.runAsync</code> 在未指定线程池参数时默认会使用 <code>ForkJoinPool.commonPool</code>，而 <code>ForkJoinPool</code> 的线程模型是基于工作窃取（work-stealing）的，线程会主动寻找并执行任务，这种模型适用于计算密集型任务，如并行计算、递归分解等。所以在 Dubbo 调用时，拦截器会拒绝服务，导致调用失败，频繁告警（内部框架逻辑，Dubbo 本身并无这个限制）。</p>
+<pre data-lang="java" style="background-color:#282c34;color:#abb2bf;" class="language-java "><code class="language-java" data-lang="java"><span style="color:#c678dd;">public class </span><span style="color:#e5c07b;">AsyncRun </span><span>{
+</span><span>    </span><span style="font-style:italic;color:#5c6370;">// 普通的线程池
+</span><span>    </span><span style="color:#c678dd;">private static final </span><span style="color:#e5c07b;">Executor </span><span>normalExecutor = </span><span style="color:#c678dd;">new </span><span style="color:#e5c07b;">ThreadPoolExecutor</span><span>(
+</span><span>            </span><span style="color:#d19a66;">10</span><span>, </span><span style="font-style:italic;color:#5c6370;">// 线程池中的线程数
+</span><span>            </span><span style="color:#d19a66;">10</span><span>, </span><span style="font-style:italic;color:#5c6370;">// 池中允许的最大线程数
+</span><span>            </span><span style="color:#d19a66;">10</span><span style="color:#c678dd;">L</span><span>, </span><span style="font-style:italic;color:#5c6370;">// 当线程数大于核心线程数时，这是多余空闲线程在终止前等待新任务的最大时间
+</span><span>            </span><span style="color:#e5c07b;">TimeUnit</span><span>.</span><span style="color:#d19a66;">SECONDS</span><span>, </span><span style="font-style:italic;color:#5c6370;">// keepAliveTime参数的时间单位
+</span><span>            </span><span style="color:#c678dd;">new </span><span style="color:#e5c07b;">SynchronousQueue</span><span>&lt;&gt;() </span><span style="font-style:italic;color:#5c6370;">// 在任务执行前用于保存任务的队列，此队列将仅保存由execute方法提交的Runnable任务
+</span><span>    );
+</span><span>
+</span><span>    </span><span style="font-style:italic;color:#5c6370;">// 基于工作窃取线程模型的线程池
+</span><span>    </span><span style="color:#c678dd;">private static final </span><span style="color:#e5c07b;">Executor </span><span>workStealingPool = </span><span style="color:#e5c07b;">ForkJoinPool</span><span>.</span><span style="color:#e06c75;">commonPool</span><span>();
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">public static void </span><span style="color:#61afef;">main</span><span>(</span><span style="color:#e5c07b;">String</span><span style="color:#c678dd;">[] </span><span style="color:#e06c75;">args</span><span>) {
+</span><span>        </span><span style="color:#e5c07b;">List</span><span>&lt;</span><span style="color:#e5c07b;">String</span><span>&gt; list = </span><span style="color:#e5c07b;">Lists</span><span>.</span><span style="color:#e06c75;">newArrayList</span><span>(</span><span style="color:#98c379;">&quot;1&quot;</span><span>, </span><span style="color:#98c379;">&quot;2&quot;</span><span>, </span><span style="color:#98c379;">&quot;3&quot;</span><span>, </span><span style="color:#98c379;">&quot;4&quot;</span><span>, </span><span style="color:#98c379;">&quot;5&quot;</span><span>, </span><span style="color:#98c379;">&quot;6&quot;</span><span>, </span><span style="color:#98c379;">&quot;7&quot;</span><span>, </span><span style="color:#98c379;">&quot;8&quot;</span><span>, </span><span style="color:#98c379;">&quot;9&quot;</span><span>, </span><span style="color:#98c379;">&quot;10&quot;</span><span>);
+</span><span>
+</span><span>        </span><span style="color:#e5c07b;">List</span><span>&lt;</span><span style="color:#e5c07b;">String</span><span>&gt; resultList = </span><span style="color:#c678dd;">new </span><span style="color:#e5c07b;">CopyOnWriteArrayList</span><span>&lt;&gt;();
+</span><span>        </span><span style="color:#e5c07b;">CompletableFuture</span><span>&lt;?&gt;</span><span style="color:#c678dd;">[]</span><span> tasks = </span><span style="color:#e5c07b;">Lists</span><span>.</span><span style="color:#e06c75;">partition</span><span>(list, </span><span style="color:#d19a66;">2</span><span>).</span><span style="color:#e06c75;">stream</span><span>()
+</span><span>                .</span><span style="color:#e06c75;">map</span><span>(</span><span style="color:#e06c75;">o </span><span style="color:#c678dd;">-&gt; </span><span style="color:#e5c07b;">CompletableFuture</span><span>.</span><span style="color:#e06c75;">runAsync</span><span>(() </span><span style="color:#c678dd;">-&gt; </span><span>{
+</span><span>                    resultList.</span><span style="color:#e06c75;">add</span><span>(</span><span style="color:#e5c07b;">StringUtils</span><span>.</span><span style="color:#e06c75;">join</span><span>(o, </span><span style="color:#98c379;">&quot;-&quot;</span><span>));
+</span><span>                }))
+</span><span>                .</span><span style="color:#e06c75;">toArray</span><span>(</span><span style="color:#e5c07b;">CompletableFuture</span><span style="color:#c678dd;">[]</span><span>::</span><span style="color:#e06c75;">new</span><span>);
+</span><span>        </span><span style="color:#e5c07b;">CompletableFuture</span><span>.</span><span style="color:#e06c75;">allOf</span><span>(tasks).</span><span style="color:#e06c75;">join</span><span>();
+</span><span>        </span><span style="color:#c678dd;">for </span><span>(</span><span style="color:#e5c07b;">String</span><span> s : resultList) {
+</span><span>            </span><span style="color:#e5c07b;">System</span><span>.out.</span><span style="color:#e06c75;">println</span><span>(s);
+</span><span>        }
+</span><span>        </span><span style="font-style:italic;color:#5c6370;">// close pool
+</span><span>        ((</span><span style="color:#e5c07b;">ThreadPoolExecutor</span><span>) normalExecutor).</span><span style="color:#e06c75;">shutdown</span><span>();
+</span><span>        ((</span><span style="color:#e5c07b;">ForkJoinPool</span><span>) workStealingPool).</span><span style="color:#e06c75;">shutdown</span><span>();
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>上面的例子，简单演示了一波，使用 <code>CompletableFuture.runAsync</code> 批量运行多个异步任务的场景。在实际的业务场景中，我们可能会使用 <code>CompletableFuture.runAsync</code> 发起 Dubbo 调用，这时候就会遇到上面提到的问题。而解决这个问题的方法也很简单，只需要指定线程池参数即可。</p>
+<pre data-lang="java" style="background-color:#282c34;color:#abb2bf;" class="language-java "><code class="language-java" data-lang="java"><span style="color:#e5c07b;">CompletableFuture</span><span>&lt;?&gt; future = </span><span style="color:#e5c07b;">CompletableFuture</span><span>.</span><span style="color:#e06c75;">runAsync</span><span>(() </span><span style="color:#c678dd;">-&gt; </span><span>{
+</span><span>            </span><span style="color:#c678dd;">for </span><span>(</span><span style="color:#e5c07b;">String</span><span> s : list) {
+</span><span>                </span><span style="color:#e5c07b;">System</span><span>.out.</span><span style="color:#e06c75;">println</span><span>(s);
+</span><span>            }
+</span><span>        }, normalExecutor);
+</span><span>future.</span><span style="color:#e06c75;">join</span><span>();
+</span></code></pre>
+<h2 id="2-shi-yong-log4j2-de-da-yin-da-dui-xiang-dao-zhi-cpu-biao-gao">2. 使用 Log4j2 的打印大对象导致 CPU 飙高</h2>
+<p>在使用 Log4j2 记录日志时，通常会使用 Jackson 的 <code>ObjectMapper</code> 将对象序列化为 JSON 字符串，然后再打印到日志文件中。但是，当对象过大时，序列化的过程会消耗大量的 CPU 资源，导致 CPU 飙高。</p>
+<pre data-lang="java" style="background-color:#282c34;color:#abb2bf;" class="language-java "><code class="language-java" data-lang="java"><span style="color:#c678dd;">public class </span><span style="color:#e5c07b;">Log4j2Test </span><span>{
+</span><span>    </span><span style="color:#c678dd;">private static final </span><span style="color:#e5c07b;">Logger </span><span>logger = </span><span style="color:#e5c07b;">LogManager</span><span>.</span><span style="color:#e06c75;">getLogger</span><span>(</span><span style="color:#e5c07b;">Log4j2Test</span><span>.</span><span style="color:#e06c75;">class</span><span>);
+</span><span>
+</span><span>    @</span><span style="color:#e06c75;">Data
+</span><span>    @</span><span style="color:#e06c75;">AllArgsConstructor
+</span><span>    </span><span style="color:#c678dd;">public static class </span><span style="color:#e5c07b;">Value </span><span>{
+</span><span>        </span><span style="color:#c678dd;">private </span><span style="color:#e5c07b;">String </span><span>name;
+</span><span>        </span><span style="color:#c678dd;">private int </span><span>age;
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">public static </span><span style="color:#e5c07b;">String </span><span style="color:#61afef;">toJson</span><span>(</span><span style="color:#e5c07b;">Object </span><span style="color:#e06c75;">obj</span><span>) {
+</span><span>        </span><span style="color:#e5c07b;">ObjectMapper</span><span> objectMapper = </span><span style="color:#c678dd;">new </span><span style="color:#e5c07b;">ObjectMapper</span><span>();
+</span><span>        </span><span style="color:#c678dd;">try </span><span>{
+</span><span>            </span><span style="color:#c678dd;">return</span><span> objectMapper.</span><span style="color:#e06c75;">writeValueAsString</span><span>(obj);
+</span><span>        } </span><span style="color:#c678dd;">catch </span><span>(</span><span style="color:#e5c07b;">Exception </span><span style="color:#e06c75;">e</span><span>) {
+</span><span>            logger.</span><span style="color:#e06c75;">error</span><span>(</span><span style="color:#98c379;">&quot;toJson error&quot;</span><span>, e);
+</span><span>        }
+</span><span>        </span><span style="color:#c678dd;">return </span><span style="color:#d19a66;">null</span><span>;
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="color:#c678dd;">public static void </span><span style="color:#61afef;">main</span><span>(</span><span style="color:#e5c07b;">String</span><span style="color:#c678dd;">[] </span><span style="color:#e06c75;">args</span><span>) {
+</span><span>        </span><span style="color:#e5c07b;">List</span><span>&lt;</span><span style="color:#e5c07b;">Value</span><span>&gt; list = </span><span style="color:#e5c07b;">Lists</span><span>.</span><span style="color:#e06c75;">newArrayList</span><span>(</span><span style="color:#c678dd;">new </span><span style="color:#e5c07b;">Value</span><span>(</span><span style="color:#98c379;">&quot;张三&quot;</span><span>, </span><span style="color:#d19a66;">18</span><span>), </span><span style="color:#c678dd;">new </span><span style="color:#e5c07b;">Value</span><span>(</span><span style="color:#98c379;">&quot;李四&quot;</span><span>, </span><span style="color:#d19a66;">20</span><span>));
+</span><span>        logger.</span><span style="color:#e06c75;">info</span><span>(</span><span style="color:#98c379;">&quot;list:{}&quot;</span><span>, </span><span style="color:#e06c75;">toJson</span><span>(list));
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>如上面代码所示，当 <code>list</code> 中的元素过多时，序列化的过程会消耗大量的 CPU 资源，导致 CPU 飙高。所以日常开发中，我们应该避免在日志中打印大对象。
+最后对于 Java 程序，可以使用<a href="https://github.com/async-profiler/async-profiler">async-profiler</a>这个低开销的采样分析器，来定位 CPU 飙高的问题。<code>async-profiler</code> 是一个功能强大的 Java 分析工具，通过低开销的采样技术和 HotSpot 特定 API，解决了传统分析器的 Safepoint 偏差问题。它不仅能够分析 Java 线程，还能监控非 Java 线程，并提供多维度的性能分析，适用于各种基于 HotSpot JVM 的 Java 运行时环境。</p>
+<h2 id="3-java-dubbo-fu-wu-shi-yong-sentinel-jin-xing-xian-liu-ji-pai-dui-deng-dai-ce-lue">3. Java Dubbo 服务使用 Sentinel 进行限流及排队等待策略</h2>
+<p>在分布式系统中，服务限流是保障系统稳定性和可用性的重要手段之一。Java Dubbo 服务可以通过集成 Alibaba 开源的 <a href="https://github.com/alibaba/Sentinel">Sentinel 框架</a>，实现对发起调用方的限流，并在达到限流值时，采用排队等待策略，以避免系统过载。</p>
+<h2 id="4-shi-yong-redis-pipeline-fang-an-jian-shao-wang-luo-yan-chi-he-ti-gao-tun-tu-liang">4. 使用 redis Pipeline 方案，减少网络延迟和提高吞吐量</h2>
+<ul>
+<li><strong>批量请求-响应</strong>：管道操作允许客户端一次性发送多个命令到 Redis 服务器，然后一次性接收所有命令的响应。这种方式减少了网络往返次数，从而降低了网络延迟。</li>
+<li><strong>减少网络开销</strong>：通过减少网络往返次数，管道操作显著降低了网络开销，提高了整体性能。</li>
+</ul>
+<pre data-lang="java" style="background-color:#282c34;color:#abb2bf;" class="language-java "><code class="language-java" data-lang="java"><span style="color:#e5c07b;">Jedis</span><span> jedis = </span><span style="color:#c678dd;">new </span><span style="color:#e5c07b;">Jedis</span><span>(</span><span style="color:#98c379;">&quot;localhost&quot;</span><span>, </span><span style="color:#d19a66;">6379</span><span>);
+</span><span style="color:#e5c07b;">Pipeline</span><span> pipeline = jedis.</span><span style="color:#e06c75;">pipelined</span><span>();
+</span><span>
+</span><span>pipeline.</span><span style="color:#e06c75;">get</span><span>(</span><span style="color:#98c379;">&quot;key1&quot;</span><span>);
+</span><span>pipeline.</span><span style="color:#e06c75;">get</span><span>(</span><span style="color:#98c379;">&quot;key2&quot;</span><span>);
+</span><span>pipeline.</span><span style="color:#e06c75;">get</span><span>(</span><span style="color:#98c379;">&quot;key3&quot;</span><span>);
+</span><span>
+</span><span style="color:#e5c07b;">List</span><span>&lt;</span><span style="color:#e5c07b;">Object</span><span>&gt; responses = pipeline.</span><span style="color:#e06c75;">syncAndReturnAll</span><span>();
+</span><span style="color:#c678dd;">for </span><span>(</span><span style="color:#e5c07b;">Object</span><span> response : responses) {
+</span><span>    </span><span style="color:#e5c07b;">System</span><span>.out.</span><span style="color:#e06c75;">println</span><span>(response);
+</span><span>}
+</span><span>
+</span><span>jedis.</span><span style="color:#e06c75;">close</span><span>();
+</span></code></pre>
+<p>通过合理选择和使用这两种操作方式，可以在不同的场景下优化 Redis 的性能和响应速度。</p>
+</article>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/interview'>Interview</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2025
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    </body>
+</html>

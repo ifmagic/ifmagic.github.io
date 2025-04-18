@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | 一文读懂 MySQL 底层架构实现</title>
+<meta
+  property="og:title"
+  content="碎碎念 | 一文读懂 MySQL 底层架构实现"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/mysql-arch/" />
+<meta property="og:description" content="简单讲述了 MySQL 的逻辑架构以及事务的本质，记录了 MySQL 处理死锁的方式以及事务日志与 MVCC 的底层实现。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="一文读懂 MySQL 底层架构实现" />
+<meta name="twitter:description" content="简单讲述了 MySQL 的逻辑架构以及事务的本质，记录了 MySQL 处理死锁的方式以及事务日志与 MVCC 的底层实现。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">14</span>
+        <span class="rest">Nov 20</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">一文读懂 MySQL 底层架构实现 </h1>
+    </div>
+  </div>
+    
+  <article><h1 id="1-mysql-de-luo-ji-jia-gou">1. MySQL 的逻辑架构</h1>
+<div align="center">
+    <img src="./mysql-arch.png" alt="arch" width="700" height="400">
+</div>
+<p><font size=2><strong>MySQL 的逻辑架构图：<a href="https://time.geekbang.org/column/article/68319">https://time.geekbang.org/column/article/68319</a></strong></font></p>
+<p>大体来说，MySQL 可以分为 Server 层和存储引擎层两部分。</p>
+<h2 id="1-1-server-ceng">1.1 Server 层</h2>
+<p>Server 层包括连接器、查询缓存、分析器、优化器、执行器等，涵盖 MySQL 的大多数核心服务功能，以及所有的内置函数（如日期、时间、数学和加密函数等），所有跨存储引擎的功能都在这一层实现，比如存储过程、触发器、视图等。</p>
+<h2 id="1-2-cun-chu-yin-qing-ceng">1.2 存储引擎层</h2>
+<p>存储引擎层负责数据的存储和提取。其架构模式是插件式的，支持 <code>InnoDB、MyISAM、Memory</code> 等多个存储引擎。现在最常用的存储引擎是<code> InnoDB</code>，它从 <code>MySQL 5.5.5</code> 版本开始成为了默认存储引擎。</p>
+<h2 id="1-3-yi-tiao-sql-yu-ju-zhi-xing-liu-cheng-zhong-mei-ge-zu-jian-de-zuo-yong">1.3 一条 SQL 语句执行流程中每个组件的作用</h2>
+<h3 id="1-3-1-lian-jie-qi">1.3.1 连接器</h3>
+<p>第一步，你会先连接到这个数据库上，这时候接待你的就是<strong>连接器</strong>。连接器负责跟客户端建立连接、获取权限、维持和管理连接。</p>
+<p>连接完成后，如果你没有后续的动作，这个连接就处于空闲状态，你可以在 <code>show processlist</code> 命令中看到它。客户端如果太长时间没动静，连接器就会自动将它断开。这个时间是由参数 <code>wait_timeout</code> 控制的，默认值是 8 小时。如果在连接被断开之后，客户端再次发送请求的话，就会收到一个错误提醒： <code>Lost connection to MySQL server during query</code>。这时候如果你要继续，就需要重连，然后再执行请求了。<br />
+<strong>数据库里面，长连接是指连接成功后，如果客户端持续有请求，则一直使用同一个连接。短连接则是指每次执行完很少的几次查询就断开连接，下次查询再重新建立一个。</strong></p>
+<p>但是全部使用长连接后，你可能会发现，有些时候 MySQL 占用内存涨得特别快，这是因为 MySQL 在执行过程中临时使用的内存是管理在连接对象里面的。这些资源会在连接断开的时候才释放。所以如果长连接累积下来，可能导致内存占用太大，被系统强行杀掉（OOM），从现象看就是 MySQL 异常重启了。</p>
+<p>怎么解决这个问题呢？你可以考虑以下两种方案。</p>
+<ul>
+<li>定期断开长连接。使用一段时间，或者程序里面判断执行过一个占用内存的大查询后，断开连接，之后要查询再重连。</li>
+<li>如果你用的是 MySQL 5.7 或更新版本，可以在每次执行一个比较大的操作后，通过执行 mysql_reset_connection 来重新初始化连接资源。这个过程不需要重连和重新做权限验证，但是会将连接恢复到刚刚创建完时的状态。</li>
+</ul>
+<h3 id="1-3-2-cha-xun-huan-cun">1.3.2 查询缓存</h3>
+<p>执行逻辑就会来到第二步：<strong>查询缓存。</strong></p>
+<p>MySQL 拿到一个查询请求后，会先到查询缓存看看，之前是不是执行过这条语句。之前执行过的语句及其结果可能会以 key-value 对的形式，被直接缓存在内存中。key 是查询的语句，value 是查询的结果。如果你的查询能够直接在这个缓存中找到 key，那么这个 value 就会被直接返回给客户端。</p>
+<p>如果语句不在查询缓存中，就会继续后面的执行阶段。执行完成后，执行结果会被存入查询缓存中。你可以看到，如果查询命中缓存，MySQL 不需要执行后面的复杂操作，就可以直接返回结果，这个效率会很高。</p>
+<p><strong>但是大多数情况下建议不要使用查询缓存，为什么呢？因为查询缓存往往弊大于利。</strong></p>
+<p>查询缓存的失效非常频繁，只要有对一个表的更新，这个表上所有的查询缓存都会被清空。因此很可能你费劲地把结果存起来，还没使用呢，就被一个更新全清空了。对于更新压力大的数据库来说，查询缓存的命中率会非常低。除非你的业务就是有一张静态表，很长时间才会更新一次。比如，一个系统配置表，那这张表上的查询才适合使用查询缓存。</p>
+<p>好在 <code>MySQL</code> 也提供了这种“按需使用”的方式。你可以将参数 <code>query_cache_type </code>设置成 <code>DEMAND</code>，这样对于默认的 SQL 语句都不使用查询缓存。而对于你确定要使用查询缓存的语句，可以用 <code>SQL_CACHE</code> 显式指定，像下面这个语句一样：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">mysql</span><span>&gt; select SQL_CACHE * from T where ID=10；
+</span></code></pre>
+<p>需要注意的是，<code>MySQL 8.0</code> 版本直接将查询缓存的整块功能删掉了，也就是说 8.0 开始彻底没有这个功能了。</p>
+<h3 id="1-3-3-fen-xi-qi">1.3.3 分析器</h3>
+<p>如果没有命中查询缓存，就要开始真正执行语句了。分析器先会做“词法分析”, 做完以后，就要做“语法分析”。根据词法分析的结果，语法分析器会根据语法规则，判断你输入的这个 SQL 语句是否满足 MySQL 语法。</p>
+<h3 id="1-3-4-you-hua-qi">1.3.4 优化器</h3>
+<p>经过了分析器，MySQL 就知道你要做什么了。在开始执行之前，还要先经过优化器的处理。</p>
+<p>优化器是在表里面有多个索引的时候，决定使用哪个索引；或者在一个语句有多表关联（join）的时候，决定各个表的连接顺序。比如你执行下面这样的语句，这个语句是执行两个表的 join：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">mysql</span><span>&gt; select * from t1 join t2 using(ID)  </span><span style="color:#e06c75;">where</span><span> t1.c=10 and t2.d=20;
+</span></code></pre>
+<ul>
+<li>既可以先从表 t1 里面取出 c=10 的记录的 ID 值，再根据 ID 值关联到表 t2，再判断 t2 里面 d 的值是否等于 20。</li>
+<li>也可以先从表 t2 里面取出 d=20 的记录的 ID 值，再根据 ID 值关联到 t1，再判断 t1 里面 c 的值是否等于 10。</li>
+</ul>
+<p>这两种执行方法的逻辑结果是一样的，但是执行的效率会有不同，而优化器的作用就是决定选择使用哪一个方案。</p>
+<h3 id="1-3-5-zhi-xing-qi">1.3.5 执行器</h3>
+<p>MySQL 通过分析器知道了你要做什么，通过优化器知道了该怎么做，于是就进入了执行器阶段，开始执行语句。</p>
+<p>开始执行的时候，要先判断一下你对这个表 T 有没有执行查询的权限，如果没有，就会返回没有权限的错误，如下所示 (在工程实现上，如果命中查询缓存，会在查询缓存返回结果的时候，做权限验证。查询也会在优化器之前调用 precheck 验证权限)。</p>
+<pre style="background-color:#282c34;color:#abb2bf;"><code><span>mysql&gt; select * from T where ID=10;
+</span><span>
+</span><span>ERROR 1142 (42000): SELECT command denied to user &#39;b&#39;@&#39;localhost&#39; for table &#39;T&#39;
+</span></code></pre>
+<p>如果有权限，就打开表继续执行。打开表的时候，执行器就会根据表的引擎定义，去使用这个引擎提供的接口。</p>
+<h1 id="2-mysql-de-shi-wu">2. MySQL 的事务</h1>
+<p>事务就是一组原子性的 SQL 查询语句，或者说一个独立的工作单元。如果数据库引擎能够成功地对数据应用该组查询的全部语句，那么就执行该组查询。如果其中任何一条语句因为崩溃或其他原因无法执行，那么所有语句都不会执行。也就是说，事务内的语句，要么全部执行成功，要么不执行。</p>
+<h2 id="2-1-shi-wu-de-si-da-te-xing-acid">2.1 事务的四大特性（ACID）</h2>
+<ol>
+<li>
+<p>原子性（atomicity）：一个事务必须视为一个不可分割的最小工作单元，整个事务中的所有操作要么全部提交成功，要么全部失败回滚，对于一个事务来说，不可能只执行其中的一部分操作，这就是事务的原子性。</p>
+</li>
+<li>
+<p>一致性（consistency）：数据库总数从一个一致性的状态转换到另一个一致性的状态。</p>
+</li>
+<li>
+<p>隔离性（isolation）：一个事务所做的修改在最终提交以前，对其他事务是不可见的。</p>
+</li>
+<li>
+<p>持久性（durability）：一旦事务提交，则其所做的修改就会永久保存到数据库中。此时即使系统崩溃，修改的数据也不会丢失。</p>
+</li>
+</ol>
+<h2 id="2-2-ge-chi-ji-bie">2.2 隔离级别</h2>
+<p>数据库事务的隔离级别有 4 种，由低到高分别为 Read uncommitted 、Read committed 、Repeatable read 、Serializable 。而且，在事务的并发操作中可能会出现脏读，不可重复读，幻读。</p>
+<p><strong><code>ANSI SQL</code> 隔离级</strong></p>
+<table><thead><tr><th>隔离级</th><th>脏读可能性</th><th>不可重复读可能性</th><th>幻读可能性</th><th>加锁读</th></tr></thead><tbody>
+<tr><td>Read uncommitted</td><td>是</td><td>是</td><td>是</td><td>否</td></tr>
+<tr><td>Read committed</td><td>否</td><td>是</td><td>是</td><td>否</td></tr>
+<tr><td>Repeatable read</td><td>否</td><td>否</td><td>是</td><td>否</td></tr>
+<tr><td>Serializable</td><td>否</td><td>否</td><td>否</td><td>是</td></tr>
+</tbody></table>
+<h1 id="3-si-suo">3. 死锁</h1>
+<h2 id="3-1-ji-ben-gai-nian">3.1 基本概念</h2>
+<p>死锁是指两个或者多个事务在同一资源上相互占用，并请求锁定对
+方占用的资源，从而导致恶性循环的现象。当多个事务试图以不同的顺
+序锁定资源时，就可能会产生死锁。多个事务同时锁定同一个资源时，
+也会产生死锁。例如，下面两个事务同时处理 <code>StockPrice</code> 可能产生死锁：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="font-style:italic;color:#5c6370;"># 事务1
+</span><span style="color:#e06c75;">START</span><span> TRANSACTION;
+</span><span style="color:#e06c75;">UPDATE</span><span> StockPrice SET close = 45.50 WHERE stock_id = 4 and date = </span><span style="color:#98c379;">&#39;2002-05-01&#39;</span><span>;
+</span><span style="color:#e06c75;">UPDATE</span><span> StockPrice SET close = 19.80 WHERE stock_id = 3 and date = </span><span style="color:#98c379;">&#39;2002-05-02&#39;</span><span>;
+</span><span style="color:#e06c75;">COMMIT</span><span>;
+</span><span>
+</span><span style="font-style:italic;color:#5c6370;"># 事务2
+</span><span style="color:#e06c75;">START</span><span> TRANSACTION;
+</span><span style="color:#e06c75;">UPDATE</span><span> StockPrice SET high = 20.12 WHERE stock_id = 3 and date = </span><span style="color:#98c379;">&#39;2002-05-01&#39;</span><span>;
+</span><span style="color:#e06c75;">UPDATE</span><span> StockPrice SET high = 47.20 WHERE stock_id = 4 and date = </span><span style="color:#98c379;">&#39;2002-05-02&#39;</span><span>;
+</span><span style="color:#e06c75;">COMMIT</span><span>;
+</span></code></pre>
+<h2 id="3-2-si-suo-jie-jue-fang-shi">3.2 死锁解决方式</h2>
+<p>为了解决这种问题，数据库系统实现了各种死锁检测和死锁超时机制。</p>
+<ul>
+<li>越复杂的系统，比如<code>InnoDB</code>存储引擎，可以检测/预知到死锁的循环依赖，并立即返回一个错误。这种解决方式很有效，否则死锁会导致出现非常慢的查询。</li>
+<li>还有一种解决方式，就是当查询的时间达到锁等待超时的设定后放弃锁请求，这种方式通常来说不太好。</li>
+<li>InnoDB 目前处理死锁的方法是，将持有最少行级排他锁的事务进行回滚（这是相对比较简
+单的死锁回滚算法）。</li>
+</ul>
+<h1 id="4-shi-wu-ri-zhi">4. 事务日志</h1>
+<p>事务日志可以帮助提高事务的效率。使用事务日志，存储引擎在修改表的数据时只需要修改其内存拷贝，再把该修改行为记录到持久在硬盘上的事务日志中，而不用每次都将修改的数据本身持久到磁盘。事务日志采用的是追加的方式，因此写日志的操作是磁盘上一小块区域内的顺序 I/O，而不像随机 I/O 需要在磁盘的多个地方移动磁头，所以采用事务日志的方式相对来说要快得多。事务日志持久以后，内存中被修改的数据在后台可以慢慢地刷回到磁盘。目前大多数存储引擎都是这样实现的，我们通常称之为预写式日志<code>(Write-Ahead Logging)</code>，修改数据需要写两次磁盘。</p>
+<p>如果数据的修改已经记录到事务日志并持久化，但数据本身还没有写回磁盘，此时系统崩溃，存储引擎在重启时能够自动恢复这部分修改的数据。具体的恢复方式则视存储引擎而定。</p>
+<h1 id="5-mvcc">5. MVCC</h1>
+<p>可以认为 MVCC 是行级锁的一个变种，但是它在很多情况下避免了加锁操作，因此开销更低。虽然实现机制有所不同，但大都实现了非阻塞的读操作，写操作也只锁定必要的行。</p>
+<p>MVCC 的实现，是通过保存数据在某个时间点的快照来实现的。也就是说，不管需要执行多长时间，每个事务看到的数据都是一致的。因为根据事务开始的时间不同，每个事务对同一张表，同一时刻看到的数据可能是不一样的。</p>
+<p><strong><code>InnoDB</code>的<code>MVCC</code>实现方式:</strong><br />
+通过在每行记录后面保存两个隐藏的列来实现的。这两个列，一个保存了行的创建时间，一个保存行的过期时间（或删除时间）。当然存储的并不是实际的时间值，而是系统版本号
+<code>（system version number）</code>。每开始一个新的事务，系统版本号都会自动递增。事务开始时刻的系统版本号会作为事务的版本号，用来和查询到的每行记录的版本号进行比较。下面看一下在<code>REPEATABLE READ </code>隔离级别下，MVCC 具体是如何操作的。</p>
+<h2 id="5-1-select">5.1 SELECT</h2>
+<p><strong>InnoDB 会根据以下两个条件检查每行记录：</strong></p>
+<p>a. <code>InnoDB</code>只查找版本早于当前事务版本的数据行（也就是，行的系统版本号小于或等于事务的系统版本号），这样可以确保事务读取的行，要么是在事务开始前已经存在的，要么是事务自身插入或者修改过的。</p>
+<p>b. 行的删除版本要么未定义，要么大于当前事务版本号。这可以确保事务读取到的行，在事务开始之前未被删除。</p>
+<h2 id="5-2-insert">5.2 INSERT</h2>
+<p>InnoDB 为新插入的每一行保存当前系统版本号作为行版本号。</p>
+<h2 id="5-3-delete">5.3 DELETE</h2>
+<p>InnoDB 为删除的每一行保存当前系统版本号作为行删除标识。</p>
+<h2 id="5-4-update">5.4 UPDATE</h2>
+<p>InnoDB 为插入一行新记录，保存当前系统版本号作为行版本号，同时保存当前系统版本号到原来的行作为行删除标识。</p>
+<p><strong>优缺点</strong>：</p>
+<p>保存这两个额外系统版本号，使大多数读操作都可以不用加锁。这样设计使得读数据操作很简单，性能很好，并且也能保证只会读取到符合标准的行。不足之处是每行记录都需要额外的存储空间，需要做更多的行检查工作，以及一些额外的维护工作。</p>
+</article>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/mysql'>MySQL</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2025
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    </body>
+</html>
