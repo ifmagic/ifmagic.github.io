@@ -9,7 +9,7 @@ tags= ["MySQL"]
 # 1. MySQL 的逻辑架构
 
 <div align="center">
-    <img src="https://static001.geekbang.org/resource/image/0d/d9/0d2070e8f84c4801adbfa03bda1f98d9.png" alt="arch" width="700" height="400">
+    <img src="./mysql-arch.png" alt="arch" width="700" height="400">
 </div>
 
 <font size=2>**MySQL 的逻辑架构图：[https://time.geekbang.org/column/article/68319](https://time.geekbang.org/column/article/68319)**</font>
