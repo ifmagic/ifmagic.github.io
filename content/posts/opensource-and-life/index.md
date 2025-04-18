@@ -8,7 +8,7 @@ tags= ["OpenSource", "DB", "Moan"]
 
 ## 1. 令人沮丧的开源之旅
 
-&#x2003;从 2023.11.14 日开始参与开源项目[GreptimeDB](https://github.com/GreptimeTeam/greptimedb)提交第一个 [PR](https://github.com/GreptimeTeam/greptimedb/pull/2748) 至今天 2024.09.20，我仅仅只提交并合并了屈指可数的 12 个 [PR](https://github.com/GreptimeTeam/greptimedb/pulls?q=is%3Apr+author%3Apoltao+is%3Aclosed)，而且大多在我看来都是一些可有可无的提交。尽管所有的 PR 均已经被合并，但除了在看到自己的 PR 被合并的时候会有些微的成就感之外，剩下的还是我麻木的内心。
+&#x2003;从 2023.11.14 日开始参与开源项目[GreptimeDB](https://github.com/GreptimeTeam/greptimedb)提交第一个 [PR](https://github.com/GreptimeTeam/greptimedb/pull/2748) 至今天 2024.09.20，我仅仅只提交并合并了屈指可数的 12 个 [PR](https://github.com/GreptimeTeam/greptimedb/pulls?q=is%3Apr+author%3Aifmagic+is%3Aclosed)，而且大多在我看来都是一些可有可无的提交。尽管所有的 PR 均已经被合并，但除了在看到自己的 PR 被合并的时候会有些微的成就感之外，剩下的还是我麻木的内心。
 
 &#x2003;其实我很清楚之所以有这种失落感是因为我本身参与开源，并不是基于自己的需求来驱动的，尤其是时间序列数据库这个领域和我当前的工作毫无关联，本质上是一种技术投机（从[@tison](https://www.tisonkun.org/)大佬哪儿偷学到的一个词）。而投机的对象是什么哩，毫不避讳的讲就是为了在简历上多一行开源项目的经历，尤其是基础设施领域的开源项目，因为尽管我现在的职位本身是业务开发，但是渴望从事基础设施领域工作的愿望一直还在，还想继续垂死挣扎一下，哈哈哈：）
 

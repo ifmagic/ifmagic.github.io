@@ -82,7 +82,7 @@ slave2 + slave3 --> a=y
 文章[可靠分布式系统-paxos 的直观解释](https://blog.openacid.com/algo/paxos/)。
 
 最终仿照作者[drmingdrmer](https://github.com/drmingdrmer)原版 go 实现的 `paxoskv`，实现了一个 rust
-版本的[paxoskv](https://github.com/poltao/consistency/tree/main/paxoskv)，之后我感觉对 `Paxos` 有了一个较为粗浅的认知。
+版本的[paxoskv](https://github.com/ifmagic/consistency/tree/main/paxoskv)，之后我感觉对 `Paxos` 有了一个较为粗浅的认知。
 
 但此时我又开始回想，为什么如今工业界的分布式系统都不再使用 `Paxos` 而是 `Raft`
 呢？网上直接搜索看到的答案都是实现过于复杂且难于理解，我觉得要了解真正的原因，只能去看 `Raft` 是如何批判 `Paxos` 的？ `Raft`

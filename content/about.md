@@ -9,8 +9,8 @@ in_search_index = true
 
 &#x2003;目前我正在积极参与开源项目的贡献，希望能够在开源社区中学习到更多的知识，以下是我参与过或当前正在参与的开源项目 🔨：
 
-- [GreptimeDB：an open-source distributed time-series database.](https://github.com/GreptimeTeam/greptimedb/pulls?q=is%3Apr+author%3Apoltao+is%3Aclosed)
+- [GreptimeDB：an open-source distributed time-series database.](https://github.com/GreptimeTeam/greptimedb/pulls?q=is%3Apr+author%3Aifmagic+is%3Aclosed)
 
-- [Apache OpenDAL：access data freely.](https://github.com/apache/opendal/pulls?q=is%3Apr+author%3Apoltao+is%3Aclosed)
+- [Apache OpenDAL：access data freely.](https://github.com/apache/opendal/pulls?q=is%3Apr+author%3Aifmagic+is%3Aclosed)
 
-- [Doocs/LeetCode：🔥LeetCode solutions in any programming language](https://github.com/doocs/leetcode/pulls?q=is%3Apr+author%3Apoltao+is%3Aclosed)
+- [Doocs/LeetCode：🔥LeetCode solutions in any programming language](https://github.com/doocs/leetcode/pulls?q=is%3Apr+author%3Aifmagic+is%3Aclosed)

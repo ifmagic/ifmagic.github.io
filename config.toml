@@ -3,7 +3,7 @@ title = "碎碎念"
 description = "吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。"
 
 # https://www.getzola.org/documentation/getting-started/configuration/
-base_url = "https://poltao.github.io"
+base_url = "https://ifmagic.github.io"
 compile_sass = true
 build_search_index = true
 # note: Chinese and Japanese search indexing is not included.
@@ -49,7 +49,7 @@ thumbnail_quality = 70
 thumbnail_default_size = 256
 thumbnail_sizes = [128, 256]
 
-link_github_username = "poltao/"
+link_github_username = "ifmagic/"
 link_x_username = "3tabs"
 link_stackoverflow_username = "14075443"
 link_bookmark = "qq_41345173"
@@ -60,6 +60,6 @@ menu_links = [
     { url = "$BASE_URL/posts/", name = "Posts" },
     { url = "$BASE_URL/tags/", name = "Tags" },
     { url = "$BASE_URL/search/", name = "Search" },
-    { url = "https://github.com/poltao/", name = "Github" },
+    { url = "https://github.com/ifmagic/", name = "Github" },
     { url = "$BASE_URL/about/", name = "About" },
 ]
