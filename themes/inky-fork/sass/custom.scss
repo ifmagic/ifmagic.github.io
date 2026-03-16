@@ -2,6 +2,7 @@
 
 /* ─── Modern Code Block Design ──────────────────────────────────────── */
 
+article pre,
 pre[class^="language-"],
 pre[class*=" language-"] {
 	position: relative;
@@ -16,6 +17,129 @@ pre[class*=" language-"] {
 	border: 1px solid rgba(255, 255, 255, 0.06);
 	font-size: 0.875rem;
 	line-height: 1.75;
+	transition: max-height 0.22s ease;
+}
+
+article pre code,
+article pre code span {
+	line-height: inherit;
+}
+
+.code-block-wrap {
+	position: relative;
+	margin: 2rem 0;
+}
+
+.code-block-wrap pre {
+	margin: 0 !important;
+}
+
+.code-block-wrap pre.has-line-numbers {
+	padding-left: 4.5rem !important;
+}
+
+.code-line-numbers {
+	position: absolute;
+	left: 0;
+	width: 3.3rem;
+	padding: 0 0.65rem 0 0;
+	text-align: right;
+	color: rgba(255, 255, 255, 0.25);
+	border-right: 1px solid rgba(255, 255, 255, 0.08);
+	white-space: pre;
+	font-family: var(--font-monospace);
+	user-select: none;
+	pointer-events: none;
+	z-index: 1;
+}
+
+.code-block-wrap.is-collapsed pre {
+	max-height: var(--collapsed-height, 13rem);
+	overflow-y: hidden;
+}
+
+.code-collapse-overlay {
+	position: absolute;
+	top: 0.62rem;
+	right: 4.95rem;
+	left: auto;
+	height: auto;
+	border-radius: 999px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	z-index: 3;
+	transition: background 0.2s ease, backdrop-filter 0.2s ease;
+}
+
+.code-block-wrap.is-collapsed .code-collapse-overlay {
+	left: 3.75rem;
+	right: 1rem;
+	top: var(--collapse-overlay-top, 9.25rem);
+	height: calc(var(--code-line-height, 1.75rem) * 1.25);
+	border-radius: 8px;
+	background: linear-gradient(
+		90deg,
+		rgba(30, 32, 48, 0.72),
+		rgba(30, 32, 48, 0.35) 40%,
+		rgba(30, 32, 48, 0.84)
+	);
+	backdrop-filter: blur(7px);
+}
+
+.code-inline-toggle {
+	pointer-events: auto;
+	padding: 0.18rem 0.52rem;
+	font-size: 0.64rem;
+	line-height: 1.2;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	border-radius: 999px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	background: rgba(255, 255, 255, 0.08);
+	color: rgba(255, 255, 255, 0.88);
+	font-family: var(--font-monospace);
+	cursor: pointer;
+}
+
+.code-block-wrap.is-collapsed .code-inline-toggle {
+	padding: 0.25rem 0.72rem;
+	font-size: 0.72rem;
+	border: 1px solid rgba(255, 255, 255, 0.28);
+	background: rgba(255, 255, 255, 0.14);
+	color: rgba(255, 255, 255, 0.95);
+}
+
+.code-inline-toggle:hover {
+	background: rgba(255, 255, 255, 0.2);
+}
+
+.code-copy-btn {
+	position: absolute;
+	top: 0.62rem;
+	right: 1rem;
+	padding: 0.2rem 0.58rem;
+	border-radius: 999px;
+	border: 1px solid rgba(255, 255, 255, 0.18);
+	background: rgba(255, 255, 255, 0.08);
+	color: rgba(255, 255, 255, 0.9);
+	font-family: var(--font-monospace);
+	font-size: 0.68rem;
+	letter-spacing: 0.02em;
+	line-height: 1.2;
+	cursor: pointer;
+	z-index: 2;
+	backdrop-filter: blur(2px);
+}
+
+.code-copy-btn:hover {
+	background: rgba(255, 255, 255, 0.14);
+}
+
+.code-copy-btn.is-copied {
+	border-color: rgba(40, 200, 64, 0.48);
+	color: #7af08d;
 }
 
 /* macOS traffic-light dots */
@@ -36,7 +160,12 @@ pre[data-lang]::after {
 	content: attr(data-lang);
 	position: absolute;
 	top: 0.7rem;
-	right: 1rem;
+	left: 4.45rem;
+	right: auto;
+	max-width: calc(100% - 12rem);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 	font-family: var(--font-monospace);
 	font-size: 0.68rem;
 	text-transform: uppercase;
@@ -55,6 +184,34 @@ pre::-webkit-scrollbar-track {
 pre::-webkit-scrollbar-thumb {
 	background: rgba(255, 255, 255, 0.18);
 	border-radius: 3px;
+}
+
+@media (max-width: 700px) {
+	.code-block-wrap pre.has-line-numbers {
+		padding-left: 3.95rem !important;
+	}
+
+	.code-line-numbers {
+		width: 2.95rem;
+	}
+
+	.code-collapse-overlay {
+		right: 4.55rem;
+	}
+
+	.code-block-wrap.is-collapsed .code-collapse-overlay {
+		left: 3.25rem;
+		right: 1rem;
+	}
+
+	pre[data-lang]::after {
+		left: 4.1rem;
+		max-width: calc(100% - 11rem);
+	}
+
+	.code-copy-btn {
+		padding: 0.2rem 0.5rem;
+	}
 }
 
 /* Inline code pill */
