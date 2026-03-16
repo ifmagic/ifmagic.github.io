@@ -20,8 +20,8 @@ body {
   word-wrap: break-word;
   background-color: var(--bg-color);
   color: var(--text-color);
-  max-width: 50em;
-  font-size: 1.25rem;
+  max-width: 62rem;
+  font-size: 1.1rem;
   margin: 0 auto;
   padding: 0 3rem;
   line-height: 1.8rem;
@@ -138,5 +138,12 @@ textarea {
 
   h4 {
     font-size: 1rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  body {
+    max-width: 75rem;
+    padding: 0 4rem;
   }
 }
