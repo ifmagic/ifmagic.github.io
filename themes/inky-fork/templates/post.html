@@ -16,7 +16,41 @@
     </div>
   </div>
   {{ hooks::post_above_content(page=page) }}  
-  <article>{{ page.content | safe }}</article>
+  <div class="post-layout">
+    <article>{{ page.content | safe }}</article>
+    {% if page.toc and page.toc | length > 0 %}
+    <aside class="post-toc" data-toc>
+      <button type="button" class="post-toc-toggle" data-toc-toggle aria-expanded="true" aria-controls="post-toc-nav">
+        目录
+      </button>
+      <nav id="post-toc-nav" class="post-toc-nav" aria-label="文章目录" data-toc-nav>
+        <ul>
+          {% for item in page.toc %}
+          <li>
+            <a href="{{ item.permalink | safe }}">{{ item.title }}</a>
+            {% if item.children and item.children | length > 0 %}
+            <ul>
+              {% for child in item.children %}
+              <li>
+                <a href="{{ child.permalink | safe }}">{{ child.title }}</a>
+                {% if child.children and child.children | length > 0 %}
+                <ul>
+                  {% for grandchild in child.children %}
+                  <li><a href="{{ grandchild.permalink | safe }}">{{ grandchild.title }}</a></li>
+                  {% endfor %}
+                </ul>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </nav>
+    </aside>
+    {% endif %}
+  </div>
 
   
   {{ hooks::post_below_content(page=page) }}  

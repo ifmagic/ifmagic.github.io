@@ -1,4 +1,44 @@
 document.addEventListener('DOMContentLoaded', function () {
+  var tocRoot = document.querySelector('[data-toc]');
+  var tocToggle = document.querySelector('[data-toc-toggle]');
+  var tocLayout = tocRoot ? tocRoot.closest('.post-layout') : null;
+  var tocStorageKey = 'post-toc-collapsed';
+
+  function syncTocToggleState(isCollapsed) {
+    if (!tocRoot || !tocToggle) {
+      return;
+    }
+
+    tocRoot.classList.toggle('is-collapsed', isCollapsed);
+    if (tocLayout) {
+      tocLayout.classList.toggle('toc-collapsed', isCollapsed);
+    }
+    tocToggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+    tocToggle.textContent = isCollapsed ? '目录 >>' : '目录 <<';
+  }
+
+  if (tocRoot && tocToggle) {
+    var initialCollapsed = false;
+    try {
+      initialCollapsed = window.localStorage.getItem(tocStorageKey) === '1';
+    } catch (err) {
+      initialCollapsed = false;
+    }
+
+    syncTocToggleState(initialCollapsed);
+
+    tocToggle.addEventListener('click', function () {
+      var nextCollapsed = !tocRoot.classList.contains('is-collapsed');
+      syncTocToggleState(nextCollapsed);
+
+      try {
+        window.localStorage.setItem(tocStorageKey, nextCollapsed ? '1' : '0');
+      } catch (err) {
+        // ignore storage failures in private mode
+      }
+    });
+  }
+
   var blocks = document.querySelectorAll('article pre');
   var syncHandlers = [];
 
