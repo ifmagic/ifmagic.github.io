@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible"
+      content="IE=edge">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+<meta name="description"
+      content="吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。" />
+<meta name="keywords"
+      content="zola, theme, ink, hugo-ink" /> 
+
+<title>碎碎念 | 基于腾讯云cvm的云原生环境搭建</title>
+<meta
+  property="og:title"
+  content="碎碎念 | 基于腾讯云cvm的云原生环境搭建"
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ifmagic.github.io/posts/tlinux3-build/" />
+<meta property="og:description" content="基于腾讯云cvm的云原生环境搭建，所有操作基于腾讯云 cvm 实例。" />
+<meta property="og:image" content="" />
+<meta property="og:image:url" content="" />
+<meta property="og:image:secure_url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="基于腾讯云cvm的云原生环境搭建" />
+<meta name="twitter:description" content="基于腾讯云cvm的云原生环境搭建，所有操作基于腾讯云 cvm 实例。" />
+<meta property="twitter:image" content="" />
+
+<link rel="alternate"
+          type="application/rss+xml"
+          title="碎碎念"
+          href="https://ifmagic.github.io/atom.xml">
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">  -->
+    <link href="https://fonts.googleapis.com/css2?family=Andada+Pro&display=swap&family=Playfair+Display"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://ifmagic.github.io/base.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"
+            integrity="sha512-7x3zila4t2qNycrtZ31HO0NnJr8kg2VI67YLoRSyi9hGhRN66FHYWr7Axa9Y1J9tGYHVBPqIjSE1ogHrJTz51g=="
+            crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <div class="avatar">
+			<a href="/">
+                <img alt="碎碎念" title="碎碎念" src="https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg" srcset="https://ifmagic.github.io/processed_images/magic.76296d763339d9bb.jpg 64w, https://ifmagic.github.io/processed_images/magic.c2f4a4b4ba111100.jpg 128w, https://ifmagic.github.io/processed_images/magic.375e2765e531a9f6.jpg 256w" class="" />
+
+			</a>
+		</div>
+	    <a class="site-name"
+           href="/">
+            <h1>碎碎念</h1>
+        </a>
+        <div class="site-description">
+            <p>吾心如花木，向阳而生，虽盛衰荣枯之异，然究终不离其性。</p>
+        </div>
+        <nav>
+            <div class="links"> 
+            <a 
+                href="https://ifmagic.github.io/posts/ ">Posts</a> 
+            <a 
+                href="https://ifmagic.github.io/tags/ ">Tags</a> 
+            <a 
+                href="https://ifmagic.github.io/search/ ">Search</a> 
+            <a 
+                href="https://github.com/ifmagic/ ">Github</a> 
+            <a 
+                href="https://ifmagic.github.io/about/ ">About</a> 
+            </div>
+        </nav>
+    </header>
+    <article>
+    
+
+<section class="post">
+  <div class="post-header">
+    <div class="meta">
+      <div class="date">
+        <span class="day">14</span>
+        <span class="rest">Dec 21</span>
+      </div>
+    </div>
+
+    <div class="matter">
+      <h1 class="title">基于腾讯云cvm的云原生环境搭建 </h1>
+    </div>
+  </div>
+    
+  <div class="post-layout">
+    <article><p>具体配置如下，操作系统为 TencentOS Server 3.1：😄</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">[root@VM-0-16-centos</span><span> cms]$ cat /etc/motd
+</span><span style="color:#e06c75;">Welcome</span><span> to TencentOS 3 64bit
+</span><span style="color:#e06c75;">Version</span><span> 3.1 20210604
+</span><span style="color:#e06c75;">tlinux3.1-64bit-5.4.119-19.0006-20210623
+</span></code></pre>
+<h2 id="1-an-zhuang-vim">1.安装 vim</h2>
+<p>主要是更新 vim 的版本，使其&gt;8.0,这样某些插件才可以正常安装。</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">yum</span><span> remove vim vi
+</span><span style="color:#e06c75;">rm -fr</span><span> /usr/local/vim /usr/bin/vim
+</span><span style="color:#56b6c2;">cd</span><span> /tmp
+</span><span style="color:#e06c75;">wget</span><span> https://github.com/vim/vim/archive/v8.2.0000.tar.gz
+</span><span style="color:#e06c75;">tar</span><span> xzf  v8.2.0000.tar.gz
+</span><span style="color:#56b6c2;">cd</span><span> vim-8.2.0000/
+</span><span style="color:#e06c75;">./configure --prefix</span><span>=/usr/local/vim</span><span style="color:#e06c75;">  --with-features</span><span>=huge</span><span style="color:#e06c75;"> --enable-multibyte --enable-gtk3-check  --enable-rubyinterp</span><span>=yes</span><span style="color:#e06c75;"> --with-python3-command</span><span>=python3</span><span style="color:#e06c75;"> --enable-python3interp</span><span>=yes</span><span style="color:#e06c75;"> --enable-perlinterp</span><span>=yes</span><span style="color:#e06c75;"> --enable-luainterp</span><span>=yes</span><span style="color:#e06c75;"> --enable-cscope
+</span><span style="color:#e06c75;">make </span><span>&amp;&amp; </span><span style="color:#e06c75;">make</span><span> install
+</span><span style="color:#e06c75;">ln -s</span><span> /usr/local/vim/bin/vim  /usr/bin/vim
+</span><span style="color:#e06c75;">vim --version </span><span style="font-style:italic;color:#5c6370;">#验证是否安装成功
+</span></code></pre>
+<p>接下来快速安装基本插件：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#56b6c2;">cd </span><span style="color:#e06c75;">~
+</span><span style="color:#e06c75;">git</span><span> clone https://gitcode.net/qq_41345173/tvim.git
+</span><span style="color:#56b6c2;">cd</span><span> tvim
+</span><span style="color:#e06c75;">cp</span><span> .vimrc </span><span style="color:#e06c75;">~</span><span>/.vimrc
+</span><span style="color:#e06c75;">mkdir -p ~</span><span>/.vim/
+</span><span style="color:#e06c75;">cp -r</span><span> colors/ </span><span style="color:#e06c75;">~</span><span>/.vim/
+</span><span style="color:#e06c75;">cp -r</span><span> autoload/ </span><span style="color:#e06c75;">~</span><span>/.vim/
+</span><span style="color:#e06c75;">cp -r</span><span> plugged/ </span><span style="color:#e06c75;">~</span><span>/.vim/
+</span><span style="color:#56b6c2;">cd </span><span style="color:#e06c75;">~</span><span>/.vim/plugged
+</span><span style="color:#e06c75;">unzip</span><span> plugged.zip
+</span><span style="color:#56b6c2;">cd </span><span style="color:#e06c75;">~
+</span><span style="color:#e06c75;">rm -fr</span><span> tvim
+</span></code></pre>
+<p>相关文章：
+<a href="https://blog.csdn.net/qq_41345173/article/details/120381818">https://blog.csdn.net/qq_41345173/article/details/120381818</a></p>
+<h2 id="2-tlinux3-an-zhuang-docker">2.tlinux3 安装 docker</h2>
+<p>Tlinux3 和其他原生操作系统不同，有团队维护 tlinux 源，安装 docker-ce 的方式如下：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">yum</span><span> install tencentos-release-docker-ce
+</span><span style="color:#e06c75;">yum</span><span> update
+</span><span style="color:#e06c75;">yum</span><span> install docker-ce docker-ce-cli containerd.io
+</span><span style="font-style:italic;color:#5c6370;"># 测试
+</span><span style="color:#e06c75;">docker</span><span> version
+</span></code></pre>
+<p>配置 github 相关域名的 ip 地址，以进行加速访问 github 资源：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">vim</span><span> /etc/hosts
+</span><span style="font-style:italic;color:#5c6370;"># 尾部添加如下内容
+</span><span style="font-style:italic;color:#5c6370;"># 在网站https://www.ipaddress.com/获取最新ip
+</span><span style="color:#e06c75;">140.82.113.3</span><span> github.com
+</span><span style="color:#e06c75;">185.199.108.133</span><span> raw.githubusercontent.com
+</span><span style="color:#e06c75;">185.199.109.133</span><span> raw.githubusercontent.com
+</span><span style="color:#e06c75;">185.199.110.133</span><span> raw.githubusercontent.com
+</span><span style="color:#e06c75;">185.199.111.133</span><span> raw.githubusercontent.com
+</span></code></pre>
+<p>Docker-compose 安装：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">curl -LO </span><span style="color:#98c379;">&quot;https://github.com/docker/compose/releases/download/1.29.0/docker-compose-$(</span><span style="color:#e06c75;">uname -s</span><span style="color:#98c379;">)-$(</span><span style="color:#e06c75;">uname -m</span><span style="color:#98c379;">)&quot;</span><span style="color:#e06c75;"> -o</span><span> /usr/local/bin/docker-compose
+</span></code></pre>
+<h2 id="3-an-zhuang-golang">3.安装 golang</h2>
+<p>安装 golang</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">wget</span><span> https://dl.google.com/go/go1.16.linux-amd64.tar.gz
+</span><span style="color:#e06c75;">sha256sum</span><span> go1.16.linux-amd64.tar.gz
+</span><span style="color:#e06c75;">tar -C</span><span> /usr/local</span><span style="color:#e06c75;"> -xzf</span><span> go1.16.linux-amd64.tar.gz
+</span><span style="font-style:italic;color:#5c6370;"># 设置环境变量，在~/.bashrc中添加如下配置
+</span><span style="color:#c678dd;">export </span><span style="color:#e06c75;">PATH</span><span>=</span><span style="color:#98c379;">$</span><span style="color:#e06c75;">PATH</span><span style="color:#98c379;">:/usr/local/go/bin
+</span><span style="color:#c678dd;">export </span><span style="color:#e06c75;">GO111MODULE</span><span>=</span><span style="color:#98c379;">on
+</span><span style="color:#c678dd;">export </span><span style="color:#e06c75;">GOPROXY</span><span>=</span><span style="color:#98c379;">https://goproxy.cn,direct
+</span><span style="color:#c678dd;">export </span><span style="color:#e06c75;">GOSUMDB</span><span>=</span><span style="color:#98c379;">off
+</span><span style="color:#c678dd;">export </span><span style="color:#e06c75;">GOPATH</span><span>=</span><span style="color:#98c379;">/root/go
+</span><span style="color:#c678dd;">export </span><span style="color:#e06c75;">PATH</span><span>=</span><span style="color:#98c379;">$</span><span style="color:#e06c75;">PATH</span><span style="color:#98c379;">:$</span><span style="color:#e06c75;">GOPATH</span><span style="color:#98c379;">/bin
+</span></code></pre>
+<p>安装 proto 依赖，便于进行 RPC 开发</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">git</span><span> clone https://github.com/protocolbuffers/protobuf
+</span><span style="font-style:italic;color:#5c6370;"># v3.6.0+以上版本支持map解析，syntax=2、3消息序列化后是二进制兼容的，用root执行以下命令
+</span><span style="color:#56b6c2;">cd</span><span> protobuf
+</span><span style="color:#e06c75;">./autogen.sh
+</span><span style="color:#e06c75;">./configure
+</span><span style="color:#e06c75;">make
+</span><span style="color:#e06c75;">make</span><span> install
+</span><span style="color:#e06c75;">ldconfig
+</span><span style="color:#e06c75;">protoc --version </span><span style="font-style:italic;color:#5c6370;"># 检测是否安装成功
+</span><span style="color:#e06c75;">go</span><span> get github.com/golang/protobuf </span><span style="font-style:italic;color:#5c6370;"># 安装依赖包
+</span><span style="font-style:italic;color:#5c6370;"># 安装gprc protocol插件
+</span><span style="color:#e06c75;">go</span><span> install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+</span><span style="color:#e06c75;">go</span><span> install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+</span><span style="font-style:italic;color:#5c6370;"># 安装grpc-gateway插件
+</span><span style="color:#e06c75;">go</span><span> install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+</span><span style="color:#e06c75;">go</span><span> install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+</span></code></pre>
+<h2 id="4-an-zhuang-nginx">4.安装 nginx</h2>
+<p>通过以下命令安装和启动 nginx:</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">yum</span><span> install nginx
+</span><span style="color:#e06c75;">systemctl</span><span> start nginx
+</span><span style="font-style:italic;color:#5c6370;"># nginx默认监听端口为80，安装后可以通过/etc/nginx/nginx.conf配置文件修改监听的端口
+</span><span style="font-style:italic;color:#5c6370;"># systemctl reload nginx可以一键重启nginx服务
+</span></code></pre>
+<h2 id="5-an-zhuang-nodejs">5.安装 nodejs</h2>
+<p>首先在<a href="https://nodejs.org/zh-cn/download/">官网下载页面</a>获取下载链接，然后下载安装：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">mkdir -p</span><span> /usr/local/nodejs
+</span><span style="color:#56b6c2;">cd</span><span> /tmp
+</span><span style="color:#e06c75;">curl -fLO</span><span> https://nodejs.org/dist/v16.16.0/node-v16.16.0-linux-x64.tar.xz
+</span><span style="color:#e06c75;">tar -xJvf</span><span> node-v16.16.0-linux-x64.tar.xz</span><span style="color:#e06c75;"> -C</span><span> /usr/local/nodejs
+</span><span style="color:#56b6c2;">echo </span><span style="color:#98c379;">&#39;export PATH=/usr/local/nodejs/node-v16.16.0-linux-x64.tar.xz/bin:$PATH&#39; </span><span>&gt;&gt; </span><span style="color:#e06c75;">~</span><span>/.bashrc
+</span><span style="color:#56b6c2;">source </span><span style="color:#e06c75;">~</span><span>/.bashrc
+</span></code></pre>
+<h2 id="6-an-zhuang-commitizen-gong-ju">6.安装 commitizen 工具</h2>
+<p><a href="https://github.com/commitizen/cz-cli">commitizen 工具</a>是规范化 git 提交信息的 node 插件，安装流程如下：</p>
+<pre data-lang="bash" style="background-color:#282c34;color:#abb2bf;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e06c75;">npm</span><span> install</span><span style="color:#e06c75;"> -g</span><span> commitizen
+</span><span style="color:#56b6c2;">echo </span><span style="color:#98c379;">&#39;{ &quot;path&quot;: &quot;cz-conventional-changelog&quot; }&#39; </span><span>&gt;&gt; </span><span style="color:#e06c75;">~</span><span>/.czrc
+</span></code></pre>
+<p><strong>Pro tip:</strong> You can use all the git commit options with <font color='red'>git cz</font>. For example: <font color='red'>git cz
+--signoff.</font></p>
+</article>
+    
+    <aside class="post-toc" data-toc>
+      <button type="button" class="post-toc-toggle" data-toc-toggle aria-expanded="true" aria-controls="post-toc-nav">
+        目录
+      </button>
+      <nav id="post-toc-nav" class="post-toc-nav" aria-label="文章目录" data-toc-nav>
+        <ul>
+          
+          <li>
+            <a href="https://ifmagic.github.io/posts/tlinux3-build/#1-an-zhuang-vim">1.安装 vim</a>
+            
+          </li>
+          
+          <li>
+            <a href="https://ifmagic.github.io/posts/tlinux3-build/#2-tlinux3-an-zhuang-docker">2.tlinux3 安装 docker</a>
+            
+          </li>
+          
+          <li>
+            <a href="https://ifmagic.github.io/posts/tlinux3-build/#3-an-zhuang-golang">3.安装 golang</a>
+            
+          </li>
+          
+          <li>
+            <a href="https://ifmagic.github.io/posts/tlinux3-build/#4-an-zhuang-nginx">4.安装 nginx</a>
+            
+          </li>
+          
+          <li>
+            <a href="https://ifmagic.github.io/posts/tlinux3-build/#5-an-zhuang-nodejs">5.安装 nodejs</a>
+            
+          </li>
+          
+          <li>
+            <a href="https://ifmagic.github.io/posts/tlinux3-build/#6-an-zhuang-commitizen-gong-ju">6.安装 commitizen 工具</a>
+            
+          </li>
+          
+        </ul>
+      </nav>
+    </aside>
+    
+  </div>
+
+  
+    
+  
+  <ul class="tags">
+    
+      <li><a href='https://ifmagic.github.io/tags/linux'>Linux</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/vim'>VIM</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/commitizen'>Commitizen</a></li>
+    
+      <li><a href='https://ifmagic.github.io/tags/nodejs'>NodeJS</a></li>
+    
+  </ul>
+  
+  
+    
+</section>
+</article>
+    <footer>
+        <div class="social">
+            <ul> 
+                 
+                <li>
+                    <a href="https://github.com/ifmagic&#x2F;"
+                       title="Github" rel="me"><i data-feather="github"></i></a>
+                </li>
+                 
+                 
+                <li>
+                    <a href="https://x.com/3tabs"
+                       title="Twitter"
+                       rel="me"><i data-feather="twitter"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://stackoverflow.com/users/14075443"
+                       title="StackOverflow"
+                       rel="me"><i data-feather="layers"></i></a>
+                </li>
+                
+                
+                <li>
+                    <a href="https://blog.csdn.net/qq_41345173"
+                       title="CSDN"
+                       rel="me"><i data-feather="bookmark"></i></a>
+                </li>
+                
+                <li>
+                    <a href="https://ifmagic.github.io/atom.xml"
+                       title="RSS"><i data-feather="rss"></i></a>
+                </li>
+            </ul>
+        </div>
+        <p> © 碎碎念 2026
+
+        
+        <br>Powered by <a target="_blank" href="https://getzola.org/">Zola</a>. Theme: <a target="_blank" href="https://github.com/jimmyff/zola-inky">Inky</a>.
+        </p>
+    </footer>
+    <script>
+        feather.replace();
+    </script> 
+    <script src="https://ifmagic.github.io/js/code-blocks.js"></script>
+    </body>
+</html>
